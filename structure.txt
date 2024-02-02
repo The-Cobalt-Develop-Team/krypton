@@ -1,0 +1,16 @@
+Project Krypton - A Encrypt Program
+Here's the structure(The items with '*' will be not programmed currently)
+Krypton-----Frontend
+     |      |-Krypton-cli
+     |      |-Krypton-server*(Use Python and Django)
+     |      |-Krypton-gui*(Use Qt)
+     |
+     |------Common(BigInteger)
+     |
+     |------Backend
+            |-ModuleLoader
+                |-RSAMod
+                |   |-PrimeGen
+                |   |-Encryptor
+                |   
+                |-Base64Convertor

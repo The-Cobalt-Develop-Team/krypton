@@ -1,0 +1,14 @@
+build/
+Releases/
+*.a
+*.out
+.cache/
+bin/
+lib/
+temp/
+.xmake/
+.vscode/
+*.yy.c
+*.tab.c
+*.tab.h
+compile_commands.json

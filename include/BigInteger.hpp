@@ -124,6 +124,18 @@ namespace BigIntBases {
         {
             return add_op(*this, rhs);
         }
+        // Converting Functions
+        [[nodiscard]] inline std::string toString() const
+        {
+            std::string ans;
+            if (isNega) {
+                ans.push_back('-');
+            }
+            for (size_t i = _data.size() - 1; i + 1 >= 1; i--) {
+                ans.push_back(char(_data[i] + '0'));
+            }
+            return ans;
+        }
     }; // Only for Bin to Oct converter, So we only provide add operator.
 
     template <size_t N>
@@ -131,28 +143,6 @@ namespace BigIntBases {
     private:
         static const size_t len = N;
         std::bitset<len> _data;
-        Base2BigInt add_op(const Base2BigInt& lhs, const Base2BigInt& rhs)
-        {
-            bool carry = false;
-            Base2BigInt<len> ans;
-            for (size_t i = 0; i < len; i++) {
-                uint8_t cur = carry + lhs._data[i] + rhs._data[i];
-                ans._data[i] = cur & 1;
-                carry = cur >> 1;
-            }
-            return ans;
-        }
-
-        Base2BigInt mul_op(Base2BigInt& lhs, Base2BigInt& rhs)
-        {
-            Base2BigInt ans {};
-            for (int i = 0; i < len; i++) {
-                if (rhs._data[i]) {
-                    ans = ans + (lhs << i);
-                }
-            }
-            return ans;
-        }
 
     public:
         // Initialization Functions
@@ -182,33 +172,45 @@ namespace BigIntBases {
         {
             return len;
         }
-        // Operators
-        inline Base2BigInt operator+(const Base2BigInt& rhs)
+        // Operator Functions
+        static Base2BigInt add_op(const Base2BigInt& lhs, const Base2BigInt& rhs)
         {
-            return add_op(*this, rhs);
+            bool carry = false;
+            Base2BigInt<len> ans;
+            for (size_t i = 0; i < len; i++) {
+                uint8_t cur = carry + lhs._data[i] + rhs._data[i];
+                ans._data[i] = cur & 1;
+                carry = cur >> 1;
+            }
+            return ans;
         }
+
+        static Base2BigInt mul_op(Base2BigInt& lhs, Base2BigInt& rhs)
+        {
+            Base2BigInt ans {};
+            for (int i = 0; i < len; i++) {
+                if (rhs._data[i]) {
+                    ans = ans + (lhs << i);
+                }
+            }
+            return ans;
+        }
+
         inline Base2BigInt operator-() const
         {
             Base2BigInt tmp = *this;
             tmp._data.flip();
             return tmp + Base2BigInt<len>(1);
         }
-        inline Base2BigInt operator-(Base2BigInt& rhs)
-        {
-            return add_op(*this, -rhs);
-        }
-        inline Base2BigInt operator*(Base2BigInt& rhs)
-        {
-            return mul_op(*this, rhs);
-        }
+
         inline Base2BigInt operator<<(size_t x) const
         {
             Base2BigInt tmp(*this);
             tmp._data <<= 1;
             return tmp;
         }
-        // Converting Functions
-        [[nodiscard]] long long toll() const
+        // Converting Function
+        [[nodiscard]] inline long long toll() const
         {
             long long base = 1;
             long long ans = 0;
@@ -235,7 +237,6 @@ namespace BigIntBases {
             }
             return ans;
         }
-
     }; // Use Bin, Contain most of methods.
 }
 
@@ -246,6 +247,62 @@ private:
     BigIntBases::Base2BigInt<N> _data;
 
 public:
+    // Construction Functions
+    BigInt() = default;
+    explicit BigInt<len>(BigIntBases::Base2BigInt<len> x)
+    {
+        _data = x;
+    }
+    explicit BigInt(long long x)
+    {
+        _data = BigIntBases::Base2BigInt<len>(x);
+    }
+    // Output Functions
+    void show()
+    {
+        _data.show();
+    }
+    // Getters
+    [[nodiscard]] inline size_t size() const
+    {
+        return len;
+    }
+
+    // Unary Operators
+    inline BigInt operator-() const
+    {
+        return BigInt(-_data);
+    }
+
+    // Binary Operators
+    inline BigInt operator+(const BigInt& rhs)
+    {
+        return BigInt(BigIntBases::Base2BigInt<len>::add_op(this->_data, rhs._data));
+    }
+    inline BigInt operator-(BigInt& rhs)
+    {
+        return BigInt(BigIntBases::Base2BigInt<len>::add_op(*this, -rhs));
+    }
+    inline BigInt operator*(BigInt& rhs)
+    {
+        return BigInt(BigIntBases::Base2BigInt<len>::mul_op(*this, rhs));
+    }
+    inline BigInt operator<<(size_t x) const
+    {
+        return BigInt(_data << x);
+    }
+    inline BigInt operator%(const BigInt& rhs) const; // TODO: Should be finished
+    // Comparison Operators TODO: Should be finished
+
+    // Converting Functions
+    [[nodiscard]] inline long long toll() const
+    {
+        return _data.toll();
+    }
+    [[nodiscard]] inline std::string toString() const
+    {
+        return _data.toBase10().toString();
+    }
 };
 }
 

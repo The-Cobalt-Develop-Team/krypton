@@ -209,6 +209,47 @@ namespace BigIntBases {
             tmp._data <<= 1;
             return tmp;
         }
+        // Comparison Operators
+        inline bool operator==(const Base2BigInt& rhs) const
+        {
+            for (int i = 0; i < len; i++) {
+                if (this->_data[i] ^ rhs._data[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        inline bool operator!=(const Base2BigInt& rhs) const
+        {
+            return !(*this == rhs);
+        }
+        inline bool operator<(const Base2BigInt& rhs) const
+        {
+            for (int i = len - 1; i + 1 > 1; i--) {
+                if (this->_data[i] >= rhs._data[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        inline bool operator<=(const Base2BigInt& rhs) const
+        {
+            return (*this < rhs) || (*this == rhs);
+        }
+        inline bool operator>(const Base2BigInt& rhs) const
+        {
+            for (int i = len - 1; i + 1 > 1; i--) {
+                if (this->_data[i] <= rhs._data[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        inline bool operator>=(const Base2BigInt& rhs) const
+        {
+            return (*this > rhs) || (*this == rhs);
+        }
+
         // Converting Function
         [[nodiscard]] inline long long toll() const
         {
@@ -249,7 +290,7 @@ private:
 public:
     // Construction Functions
     BigInt() = default;
-    explicit BigInt<len>(BigIntBases::Base2BigInt<len> x)
+    explicit BigInt(BigIntBases::Base2BigInt<N> x)
     {
         _data = x;
     }
@@ -267,7 +308,6 @@ public:
     {
         return len;
     }
-
     // Unary Operators
     inline BigInt operator-() const
     {
@@ -279,11 +319,11 @@ public:
     {
         return BigInt(BigIntBases::Base2BigInt<len>::add_op(this->_data, rhs._data));
     }
-    inline BigInt operator-(BigInt& rhs)
+    inline BigInt operator-(const BigInt& rhs)
     {
         return BigInt(BigIntBases::Base2BigInt<len>::add_op(*this, -rhs));
     }
-    inline BigInt operator*(BigInt& rhs)
+    inline BigInt operator*(const BigInt& rhs)
     {
         return BigInt(BigIntBases::Base2BigInt<len>::mul_op(*this, rhs));
     }
@@ -291,9 +331,32 @@ public:
     {
         return BigInt(_data << x);
     }
-    inline BigInt operator%(const BigInt& rhs) const; // TODO: Should be finished
-    // Comparison Operators TODO: Should be finished
+    inline BigInt operator==(const BigInt& rhs)
+    {
+        return this->_data == rhs._data;
+    }
+    inline BigInt operator!=(const BigInt& rhs)
+    {
+        return this->_data != rhs._data;
+    }
+    inline BigInt operator<(const BigInt& rhs)
+    {
+        return this->_data < rhs._data;
+    }
+    inline BigInt operator<=(const BigInt& rhs)
+    {
+        return this->_data <= rhs._data;
+    }
+    inline BigInt operator>(const BigInt& rhs)
+    {
+        return this->_data > rhs._data;
+    }
+    inline BigInt operator>=(const BigInt& rhs)
+    {
+        return this->_data >= rhs._data;
+    }
 
+    inline BigInt operator%(const BigInt& rhs) const; // TODO: Should be finished
     // Converting Functions
     [[nodiscard]] inline long long toll() const
     {

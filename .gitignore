@@ -13,3 +13,4 @@ temp/
 *.tab.c
 *.tab.h
 compile_commands.json
+CMakeSettings.json

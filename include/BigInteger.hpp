@@ -35,6 +35,7 @@
 #include <bitset>
 #include <cstdint>
 #include <iostream>
+#include <random>
 #include <vector>
 
 namespace Krypton {
@@ -196,6 +197,11 @@ namespace BigIntBases {
             return ans;
         }
 
+        Base2BigInt operator+(Base2BigInt& rhs)
+        {
+            return add_op(*this, rhs);
+        }
+
         inline Base2BigInt operator-() const
         {
             Base2BigInt tmp = *this;
@@ -277,6 +283,21 @@ namespace BigIntBases {
                 base = base + base;
             }
             return ans;
+        }
+
+        template <typename RNG>
+        static Base2BigInt<N> random(RNG& rng, const Base2BigInt<N>& min, const Base2BigInt<N>& max)
+        {
+            // TODO: Change another better random algorithm
+            std::uniform_int_distribution<unsigned int> distr(0, 2);
+            auto diff = Base2BigInt<N>::add_op(max, -min);
+            auto res = Base2BigInt<N>(0);
+            std::cout << diff.toll() << std::endl;
+            for (size_t i = 0; i < N; ++i) {
+                res._data[i] = distr(rng);
+            }
+            res._data = res._data & diff._data;
+            return Base2BigInt<N>::add_op(res, min);
         }
     }; // Use Bin, Contain most of methods.
 }
@@ -365,6 +386,11 @@ public:
     [[nodiscard]] inline std::string toString() const
     {
         return _data.toBase10().toString();
+    }
+    template <typename RNG>
+    static BigInt<N> random(RNG& rng, BigInt<N> min, BigInt<N> max)
+    {
+        return BigInt<N>(decltype(_data)::random(rng, min._data, max._data));
     }
 };
 }

@@ -49,9 +49,9 @@ inline bool probablePrime(const NumType& n)
 {
     std::random_device rd;
     std::mt19937_64 rng(rd());
-    if (n < 3 || n % 2 == 0)
-        return n == 2;
-    NumType u = n - 1;
+    if (n < NumType(3) || n % 2 == 0)
+        return n == NumType(2);
+    NumType u = n - NumType(1);
     uint64_t t = 0;
     while (u % 2 == 0) {
         u /= 2;

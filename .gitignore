@@ -8,6 +8,7 @@ lib/
 temp/
 .xmake/
 .vscode/
+.vs/
 *.yy.c
 *.tab.c
 *.tab.h

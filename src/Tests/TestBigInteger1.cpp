@@ -1,8 +1,8 @@
 #include "BigInteger.hpp"
-#include <bits/stdc++.h>
+#include <iostream>
 
 using namespace std;
-using namespace BigIntBases;
+using namespace Krypton::BigIntBases;
 
 Base10BigInt a(79), b(53), z(0); // NOLINT
 Base2BigInt<128> c(79), d(53), e(-53), f(2); // NOLINT

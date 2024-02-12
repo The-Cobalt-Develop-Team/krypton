@@ -19,7 +19,7 @@ inline BaseType power(BaseType base, const PowType& pow)
 }
 
 template <typename BaseType, typename PowType>
-inline BaseType power(BaseType base, const PowType& pow, const BaseType& mod)
+inline BaseType power(BaseType base, PowType pow, const BaseType& mod)
 {
     BaseType res { 1 };
     while (pow > 0) {
@@ -58,7 +58,7 @@ inline bool probablePrime(const NumType& n)
         ++t;
     }
     for (size_t i = 0; i < certainty; ++i) {
-        auto base = getRandom(rng, NumType(3), n - 1);
+        auto base = getRandom(rng, NumType(2), n - 1);
         auto v = power(base, u, n);
         if (v == NumType(1))
             continue;

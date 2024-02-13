@@ -72,3 +72,14 @@ TEST(GMPWrapperTest, BitTest2)
     auto r = "10111110011000101110101100001101"_bib;
     ASSERT_EQ(a ^ m, r);
 }
+
+TEST(GMPWrapperTest, RandomTest1)
+{
+    std::random_device rd;
+    std::mt19937_64 rng(rd());
+    auto minr = "1923857230"_bi, maxr = "1028347302048"_bi;
+    auto randb = BigInt::random(rng, minr, maxr);
+    ASSERT_TRUE(minr <= randb && randb <= maxr);
+    auto randb2 = BigInt::random(rng, minr, maxr);
+    ASSERT_TRUE(randb != randb2);
+}

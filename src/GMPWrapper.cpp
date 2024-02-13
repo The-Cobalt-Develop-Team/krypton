@@ -39,6 +39,7 @@ BigInt BigInt::low_n_bit(unsigned int n) const
 }
 const int BigInt::sign() const { return mpz_sgn(this->data_); }
 const unsigned int BigInt::to_ui() const { return mpz_get_ui(this->data_); }
+const size_t BigInt::size_in_base(unsigned int base) const { return mpz_sizeinbase(this->data_, base); }
 
 BigInt operator+(const BigInt& lhs, const BigInt& rhs)
 {
@@ -102,8 +103,11 @@ BigInt operator<<(const BigInt& lhs, unsigned int rhs)
 }
 //  bool operator<=>(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_); }
 bool operator==(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_) == 0; }
+bool operator!=(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_) != 0; }
 bool operator<(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_) < 0; }
 bool operator>(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_) > 0; }
+bool operator<=(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_) <= 0; }
+bool operator>=(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_) >= 0; }
 BigInt operator&(const BigInt& lhs, const BigInt& rhs)
 {
     BigInt res;

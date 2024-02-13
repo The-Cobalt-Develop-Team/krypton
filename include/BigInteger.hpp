@@ -292,7 +292,7 @@ namespace BigIntBases {
             std::uniform_int_distribution<unsigned int> distr(0, 2);
             auto diff = Base2BigInt<N>::add_op(max, -min);
             auto res = Base2BigInt<N>(0);
-            std::cout << diff.toll() << std::endl;
+            // std::cout << diff.toll() << std::endl;
             for (size_t i = 0; i < N; ++i) {
                 res._data[i] = distr(rng);
             }

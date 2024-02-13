@@ -1,10 +1,7 @@
 #pragma once
 
 #include "minigmp/mini-gmp.h"
-#include <cstdint>
-#include <iostream>
-#include <string>
-#include <utility>
+#include <random>
 
 namespace Krypton {
 namespace GMPWrapper {
@@ -26,11 +23,21 @@ namespace GMPWrapper {
         BigInt low_n_bit(unsigned int n) const;
         const int sign() const;
         const unsigned int to_ui() const;
+        const size_t size_in_base(unsigned int base) const;
 
         template <typename RNG>
-        static BigInt&& random(RNG&, const BigInt& lhs, const BigInt& rhs)
+        static BigInt random(RNG& rng, const BigInt& min, const BigInt& max)
         {
-            // TODO: random algorithm
+            BigInt res = 0_bi;
+            auto rg = max - min;
+            auto n = rg.size_in_base(2);
+            std::uniform_int_distribution<int> distr(0, 1);
+            for (size_t i = 0; i < n; ++i) {
+                if (distr(rng))
+                    mpz_setbit(res.data_, i);
+            }
+            mpz_and(res.data_, res.data_, rg.data_);
+            return res + min;
         }
 
         friend BigInt operator+(const BigInt& lhs, const BigInt& rhs);
@@ -45,8 +52,11 @@ namespace GMPWrapper {
         friend BigInt operator<<(const BigInt& lhs, unsigned int rhs);
         // friend bool operator<=>(const BigInt& lhs, const BigInt& rhs) { return mpz_cmp(lhs.data_, rhs.data_); }
         friend bool operator==(const BigInt& lhs, const BigInt& rhs);
+        friend bool operator!=(const BigInt& lhs, const BigInt& rhs);
         friend bool operator<(const BigInt& lhs, const BigInt& rhs);
         friend bool operator>(const BigInt& lhs, const BigInt& rhs);
+        friend bool operator<=(const BigInt& lhs, const BigInt& rhs);
+        friend bool operator>=(const BigInt& lhs, const BigInt& rhs);
         friend BigInt operator&(const BigInt& lhs, const BigInt& rhs);
         friend BigInt operator|(const BigInt& lhs, const BigInt& rhs);
         friend BigInt operator^(const BigInt& lhs, const BigInt& rhs);

@@ -24,10 +24,17 @@ include_directories(thirdparty/gtest/googletest/include)
 
 add_library(gmp thirdparty/minigmp/mini-gmp.c)
 
+enable_testing()
+
+include(GoogleTest)
+
 # add_executable(test1 src/Tests/TestBigInteger1.cpp)
 # add_executable(test2 src/Tests/TestMathCommon1.cpp)
-add_executable(unittests src/Tests/MathCommonUnitTest.cpp)
+add_executable(unittests src/Tests/MathCommonUnitTest.cpp
+                         src/Tests/GMPWrapperUnitTest.cpp)
 
 # target_link_libraries(test1 gmp)
 # target_link_libraries(test2 gmp)
 target_link_libraries(unittests gmp GTest::gtest_main)
+
+gtest_discover_tests(unittests)

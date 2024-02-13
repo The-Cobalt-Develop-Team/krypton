@@ -17,6 +17,16 @@ namespace GMPWrapper {
         BigInt(const std::string& str, int base) { mpz_init_set_str(data_, str.c_str(), base); }
         BigInt(const BigInt& other) { mpz_init_set(data_, other.data_); }
         BigInt(BigInt&& other) { mpz_swap(data_, other.data_); }
+        BigInt& operator=(const BigInt& rhs)
+        {
+            mpz_set(this->data_, rhs.data_);
+            return *this;
+        }
+        BigInt& operator=(BigInt&& rhs)
+        {
+            mpz_swap(this->data_, rhs.data_);
+            return *this;
+        }
 
         ~BigInt() { mpz_clear(data_); }
 
@@ -147,5 +157,7 @@ namespace GMPWrapper {
     };
     BigInt operator""_bi(unsigned long long n) { return BigInt(static_cast<unsigned int>(n)); }
     BigInt operator""_bi(const char* str, size_t) { return BigInt(str, 10); }
+    BigInt operator""_bix(const char* str, size_t) { return BigInt(str, 16); }
+    BigInt operator""_bib(const char* str, size_t) { return BigInt(str, 2); }
 }
 }

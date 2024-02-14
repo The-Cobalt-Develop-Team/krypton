@@ -28,20 +28,24 @@ namespace GMPWrapper {
         template <typename RNG>
         static BigInt random(RNG& rng, const BigInt& min, const BigInt& max)
         {
-            BigInt res = 0_bi;
+            // FIXME: Change another random algorithm
+            BigInt res;
             auto rg = max - min;
             auto n = rg.size_in_base(2);
             std::uniform_int_distribution<int> distr(0, 1);
-            for (size_t i = 0; i < n; ++i) {
-                if (distr(rng))
-                    mpz_setbit(res.data_, i);
-            }
-            mpz_and(res.data_, res.data_, rg.data_);
+            do {
+                res = 0_bi;
+                for (size_t i = 0; i < n; ++i) {
+                    if (distr(rng))
+                        mpz_setbit(res.data_, i);
+                }
+            } while (res > rg);
             return res + min;
         }
 
         friend BigInt operator+(const BigInt& lhs, const BigInt& rhs);
         friend BigInt operator-(const BigInt& lhs, const BigInt& rhs);
+        friend BigInt operator-(const BigInt& lhs, unsigned int rhs);
         friend BigInt operator-(const BigInt& lhs);
         friend BigInt operator*(const BigInt& lhs, const BigInt& rhs);
         friend BigInt operator/(const BigInt& lhs, const BigInt& rhs);

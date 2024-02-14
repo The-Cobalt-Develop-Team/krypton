@@ -53,6 +53,12 @@ BigInt operator-(const BigInt& lhs, const BigInt& rhs)
     mpz_sub(res.data_, lhs.data_, rhs.data_);
     return res;
 }
+BigInt operator-(const BigInt& lhs, unsigned int rhs)
+{
+    BigInt res;
+    mpz_sub_ui(res.data_, lhs.data_, rhs);
+    return res;
+}
 BigInt operator-(const BigInt& lhs)
 {
     BigInt res;

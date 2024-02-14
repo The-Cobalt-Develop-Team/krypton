@@ -25,7 +25,8 @@ include_directories(thirdparty/gtest/googletest/include)
 
 add_library(gmp thirdparty/minigmp/mini-gmp.c)
 
-add_library(krypton src/GMPWrapper.cpp)
+add_library(krypton src/GMPWrapper.cpp
+                    src/MathCommon.cpp)
 
 enable_testing()
 include(GoogleTest)

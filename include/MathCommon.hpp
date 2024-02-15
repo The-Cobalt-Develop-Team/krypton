@@ -33,6 +33,35 @@ inline BaseType power(BaseType base, PowType pow, const BaseType& mod)
     return res;
 }
 
+template <typename NumType>
+NumType gcd(const NumType& lhs, const NumType& rhs)
+{
+    if (lhs == NumType(0))
+        return rhs;
+    if (rhs == NumType(0))
+        return lhs;
+    return lhs > rhs ? gcd(rhs, lhs % rhs) : gcd(lhs, rhs % lhs);
+}
+
+template <typename NumType>
+NumType lcm(const NumType& lhs, const NumType& rhs) { return lhs * rhs / gcd(lhs, rhs); }
+
+// NOTE: a > b is required
+template <typename NumType>
+NumType exgcd(const NumType& a, const NumType& b, NumType& x, NumType& y)
+{
+    if (b == NumType(0)) {
+        x = NumType(1);
+        y = NumType(0);
+        return a;
+    }
+    auto d = exgcd(b, a % b, x, y);
+    auto t = x;
+    x = y;
+    y = t - (a / b) * y;
+    return d;
+}
+
 template <typename NumType, typename RNGType>
 inline NumType getRandom(RNGType& rng, const NumType& min, const NumType& max)
 {

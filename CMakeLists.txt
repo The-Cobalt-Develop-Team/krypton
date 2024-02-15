@@ -26,13 +26,16 @@ include_directories(thirdparty/gtest/googletest/include)
 add_library(gmp thirdparty/minigmp/mini-gmp.c)
 
 add_library(krypton src/GMPWrapper.cpp
-                    src/MathCommon.cpp)
+                    src/MathCommon.cpp
+                    src/Utilities.cpp
+                    src/RSA.cpp)
 
 enable_testing()
 include(GoogleTest)
 
 add_executable(unittests tests/MathCommonUnitTest.cpp
-                         tests/GMPWrapperUnitTest.cpp)
+                         tests/GMPWrapperUnitTest.cpp
+                         tests/UtilitiesUnitTest.cpp)
 
 target_link_libraries(unittests gmp krypton GTest::gtest_main)
 

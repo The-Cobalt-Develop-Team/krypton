@@ -1,5 +1,6 @@
 #include "GMPWrapper.hpp"
 
+#include "Utilities.hpp"
 #include "minigmp/mini-gmp.h"
 #include <cstdint>
 #include <iostream>
@@ -40,6 +41,13 @@ BigInt BigInt::low_n_bit(unsigned int n) const
 const int BigInt::sign() const { return mpz_sgn(this->data_); }
 const unsigned int BigInt::to_ui() const { return mpz_get_ui(this->data_); }
 const size_t BigInt::size_in_base(unsigned int base) const { return mpz_sizeinbase(this->data_, base); }
+
+ByteArray BigInt::toByteArray() const
+{
+    size_t len;
+    auto ptr = mpz_export(NULL, &len, -1, 1, 0, 0, this->data_);
+    return ByteArray(static_cast<byte*>(ptr), len);
+}
 
 BigInt operator+(const BigInt& lhs, const BigInt& rhs)
 {

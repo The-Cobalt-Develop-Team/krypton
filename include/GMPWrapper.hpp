@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utilities.hpp"
+
 #include "minigmp/mini-gmp.h"
 #include <random>
 
@@ -10,6 +12,8 @@ namespace GMPWrapper {
         BigInt();
         explicit BigInt(unsigned int);
         explicit BigInt(signed int);
+        BigInt(const ByteArray& ba);
+        BigInt(ByteArray&& ba);
         BigInt(const char* ptr, int base);
         BigInt(const std::string& str, int base);
         BigInt(const BigInt& other);
@@ -24,6 +28,7 @@ namespace GMPWrapper {
         const int sign() const;
         const unsigned int to_ui() const;
         const size_t size_in_base(unsigned int base) const;
+        ByteArray toByteArray() const;
 
         template <typename RNG>
         static BigInt random(RNG& rng, const BigInt& min, const BigInt& max)
@@ -79,4 +84,10 @@ namespace GMPWrapper {
     BigInt operator""_bix(const char* str, size_t);
     BigInt operator""_bib(const char* str, size_t);
 }
+
+using BigInt = GMPWrapper::BigInt;
+using GMPWrapper::operator""_bi;
+using GMPWrapper::operator""_bix;
+using GMPWrapper::operator""_bib;
+
 }

@@ -75,42 +75,6 @@ inline uint64_t getRandom(RNGType& rng, uint64_t min, uint64_t max)
     return distr(rng);
 }
 
-template <typename NumType, size_t certainty = 16>
-inline bool probablePrime(const NumType& n)
-{
-    if (n >= NumType(1 << 30)) {
-        for (size_t i = 2000; i > 0; --i) {
-            if (n % PrimeState::nthPrime(i) == NumType(0))
-                return false;
-        }
-    }
-    std::random_device rd;
-    std::mt19937_64 rng(rd());
-    if (n < NumType(3) || n % 2 == NumType(0))
-        return n == NumType(2);
-    NumType u = n - NumType(1);
-    uint64_t t = 0;
-    while (u % 2 == NumType(0)) {
-        u = u / 2;
-        ++t;
-    }
-    for (size_t i = 0; i < certainty; ++i) {
-        auto base = getRandom(rng, NumType(2), n - 1);
-        auto v = power(base, u, n);
-        if (v == NumType(1))
-            continue;
-        uint64_t s;
-        for (s = 0; s < t; ++s) {
-            if (v == n - 1)
-                break;
-            v = v * v % n;
-        }
-        if (s == t)
-            return false;
-    }
-    return true;
-}
-
 class PrimeState {
 private:
     PrimeState()
@@ -146,6 +110,42 @@ private:
     std::array<PrimeType, kMaxN + 1> prime_;
     size_t cur_p_, cur_n_;
 };
+
+template <typename NumType, size_t certainty = 16>
+inline bool probablePrime(const NumType& n)
+{
+    if (n >= NumType(1 << 30)) {
+        for (size_t i = 2000; i > 0; --i) {
+            if (n % PrimeState::nthPrime(i) == NumType(0))
+                return false;
+        }
+    }
+    std::random_device rd;
+    std::mt19937_64 rng(rd());
+    if (n < NumType(3) || n % 2 == NumType(0))
+        return n == NumType(2);
+    NumType u = n - NumType(1);
+    uint64_t t = 0;
+    while (u % 2 == NumType(0)) {
+        u = u / 2;
+        ++t;
+    }
+    for (size_t i = 0; i < certainty; ++i) {
+        auto base = getRandom(rng, NumType(2), n - 1);
+        auto v = power(base, u, n);
+        if (v == NumType(1))
+            continue;
+        uint64_t s;
+        for (s = 0; s < t; ++s) {
+            if (v == n - 1)
+                break;
+            v = v * v % n;
+        }
+        if (s == t)
+            return false;
+    }
+    return true;
+}
 
 template <typename NumType, typename RNGType>
 inline NumType getRandomPrime(RNGType& rng, const NumType& min, const NumType& max)

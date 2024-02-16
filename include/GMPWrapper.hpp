@@ -7,13 +7,19 @@
 
 namespace Krypton {
 namespace GMPWrapper {
+    class BigInt;
+    BigInt operator""_bi(unsigned long long n);
+    BigInt operator""_bi(const char* str, size_t);
+    BigInt operator""_bix(const char* str, size_t);
+    BigInt operator""_bib(const char* str, size_t);
+
     class BigInt {
     public:
         BigInt();
         explicit BigInt(unsigned int);
         explicit BigInt(signed int);
-        BigInt(const ByteArray& ba);
-        BigInt(ByteArray&& ba);
+        explicit BigInt(const ByteArray& ba);
+        explicit BigInt(ByteArray&& ba);
         BigInt(const char* ptr, int base);
         BigInt(const std::string& str, int base);
         BigInt(const BigInt& other);
@@ -79,10 +85,6 @@ namespace GMPWrapper {
     private:
         mpz_t data_;
     };
-    BigInt operator""_bi(unsigned long long n);
-    BigInt operator""_bi(const char* str, size_t);
-    BigInt operator""_bix(const char* str, size_t);
-    BigInt operator""_bib(const char* str, size_t);
 }
 
 using BigInt = GMPWrapper::BigInt;

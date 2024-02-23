@@ -15,13 +15,13 @@ BigInt::BigInt(signed int x) { mpz_init_set_si(data_, x); }
 BigInt::BigInt(const char* ptr, int base) { mpz_init_set_str(data_, ptr, base); }
 BigInt::BigInt(const std::string& str, int base) { mpz_init_set_str(data_, str.c_str(), base); }
 BigInt::BigInt(const BigInt& other) { mpz_init_set(data_, other.data_); }
-BigInt::BigInt(BigInt&& other) { mpz_swap(data_, other.data_); }
+BigInt::BigInt(BigInt&& other) noexcept { mpz_swap(data_, other.data_); }
 BigInt& BigInt::operator=(const BigInt& rhs)
 {
     mpz_set(this->data_, rhs.data_);
     return *this;
 }
-BigInt& BigInt::operator=(BigInt&& rhs)
+BigInt& BigInt::operator=(BigInt&& rhs) noexcept
 {
     mpz_swap(this->data_, rhs.data_);
     return *this;

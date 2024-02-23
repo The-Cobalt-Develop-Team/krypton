@@ -1,7 +1,10 @@
 #pragma once
 
-#include "MathCommon.hpp"
 #include "Utilities.hpp"
+#include <array>
+#include <cassert>
+#include <cstdint>
+#include <cstring>
 
 namespace Krypton {
 
@@ -9,10 +12,11 @@ template <typename Prev>
 struct AESEncrypt { };
 
 namespace Detail {
-    class BaseAESImpl {
-    protected:
+    template <int Nr, int Nk>
+    class BaseAESContext {
+    private:
         static constexpr int Nb = 4;
-        static constexpr uint8_t S_Box[256] = {
+        static constexpr uint8_t kSBox[256] = {
             /* 0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F  */
             0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
             0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -31,7 +35,7 @@ namespace Detail {
             0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
             0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
         };
-        static constexpr uint8_t Inv_S_Box[256] = {
+        static constexpr uint8_t kInvSBox[256] = {
             /* 0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F  */
             0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
             0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
@@ -50,7 +54,7 @@ namespace Detail {
             0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
             0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
         };
-        static constexpr uint8_t Mul_01[256] = {
+        static constexpr uint8_t kMul01[256] = {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
             0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
             0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
@@ -68,7 +72,7 @@ namespace Detail {
             0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef,
             0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff
         };
-        static constexpr uint8_t Mul_02[256] = {
+        static constexpr uint8_t kMul02[256] = {
             0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16, 0x18, 0x1a, 0x1c, 0x1e,
             0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e,
             0x40, 0x42, 0x44, 0x46, 0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x52, 0x54, 0x56, 0x58, 0x5a, 0x5c, 0x5e,
@@ -87,7 +91,7 @@ namespace Detail {
             0xfb, 0xf9, 0xff, 0xfd, 0xf3, 0xf1, 0xf7, 0xf5, 0xeb, 0xe9, 0xef, 0xed, 0xe3, 0xe1, 0xe7, 0xe5
         };
 
-        static constexpr uint8_t Mul_03[256] = {
+        static constexpr uint8_t kMul03[256] = {
             0x00, 0x03, 0x06, 0x05, 0x0c, 0x0f, 0x0a, 0x09, 0x18, 0x1b, 0x1e, 0x1d, 0x14, 0x17, 0x12, 0x11,
             0x30, 0x33, 0x36, 0x35, 0x3c, 0x3f, 0x3a, 0x39, 0x28, 0x2b, 0x2e, 0x2d, 0x24, 0x27, 0x22, 0x21,
             0x60, 0x63, 0x66, 0x65, 0x6c, 0x6f, 0x6a, 0x69, 0x78, 0x7b, 0x7e, 0x7d, 0x74, 0x77, 0x72, 0x71,
@@ -106,7 +110,7 @@ namespace Detail {
             0x0b, 0x08, 0x0d, 0x0e, 0x07, 0x04, 0x01, 0x02, 0x13, 0x10, 0x15, 0x16, 0x1f, 0x1c, 0x19, 0x1a
         };
 
-        static constexpr uint8_t Mul_09[256] = {
+        static constexpr uint8_t kMul09[256] = {
             0x00, 0x09, 0x12, 0x1b, 0x24, 0x2d, 0x36, 0x3f, 0x48, 0x41, 0x5a, 0x53, 0x6c, 0x65, 0x7e, 0x77,
             0x90, 0x99, 0x82, 0x8b, 0xb4, 0xbd, 0xa6, 0xaf, 0xd8, 0xd1, 0xca, 0xc3, 0xfc, 0xf5, 0xee, 0xe7,
             0x3b, 0x32, 0x29, 0x20, 0x1f, 0x16, 0x0d, 0x04, 0x73, 0x7a, 0x61, 0x68, 0x57, 0x5e, 0x45, 0x4c,
@@ -125,7 +129,7 @@ namespace Detail {
             0x31, 0x38, 0x23, 0x2a, 0x15, 0x1c, 0x07, 0x0e, 0x79, 0x70, 0x6b, 0x62, 0x5d, 0x54, 0x4f, 0x46
         };
 
-        static constexpr uint8_t Mul_0b[256] = {
+        static constexpr uint8_t kMul0b[256] = {
             0x00, 0x0b, 0x16, 0x1d, 0x2c, 0x27, 0x3a, 0x31, 0x58, 0x53, 0x4e, 0x45, 0x74, 0x7f, 0x62, 0x69,
             0xb0, 0xbb, 0xa6, 0xad, 0x9c, 0x97, 0x8a, 0x81, 0xe8, 0xe3, 0xfe, 0xf5, 0xc4, 0xcf, 0xd2, 0xd9,
             0x7b, 0x70, 0x6d, 0x66, 0x57, 0x5c, 0x41, 0x4a, 0x23, 0x28, 0x35, 0x3e, 0x0f, 0x04, 0x19, 0x12,
@@ -144,7 +148,7 @@ namespace Detail {
             0xca, 0xc1, 0xdc, 0xd7, 0xe6, 0xed, 0xf0, 0xfb, 0x92, 0x99, 0x84, 0x8f, 0xbe, 0xb5, 0xa8, 0xa3
         };
 
-        static constexpr uint8_t Mul_0d[256] = {
+        static constexpr uint8_t kMul0d[256] = {
             0x00, 0x0d, 0x1a, 0x17, 0x34, 0x39, 0x2e, 0x23, 0x68, 0x65, 0x72, 0x7f, 0x5c, 0x51, 0x46, 0x4b,
             0xd0, 0xdd, 0xca, 0xc7, 0xe4, 0xe9, 0xfe, 0xf3, 0xb8, 0xb5, 0xa2, 0xaf, 0x8c, 0x81, 0x96, 0x9b,
             0xbb, 0xb6, 0xa1, 0xac, 0x8f, 0x82, 0x95, 0x98, 0xd3, 0xde, 0xc9, 0xc4, 0xe7, 0xea, 0xfd, 0xf0,
@@ -163,7 +167,7 @@ namespace Detail {
             0xdc, 0xd1, 0xc6, 0xcb, 0xe8, 0xe5, 0xf2, 0xff, 0xb4, 0xb9, 0xae, 0xa3, 0x80, 0x8d, 0x9a, 0x97
         };
 
-        static constexpr uint8_t Mul_0e[256] = {
+        static constexpr uint8_t kMul0e[256] = {
             0x00, 0x0e, 0x1c, 0x12, 0x38, 0x36, 0x24, 0x2a, 0x70, 0x7e, 0x6c, 0x62, 0x48, 0x46, 0x54, 0x5a,
             0xe0, 0xee, 0xfc, 0xf2, 0xd8, 0xd6, 0xc4, 0xca, 0x90, 0x9e, 0x8c, 0x82, 0xa8, 0xa6, 0xb4, 0xba,
             0xdb, 0xd5, 0xc7, 0xc9, 0xe3, 0xed, 0xff, 0xf1, 0xab, 0xa5, 0xb7, 0xb9, 0x93, 0x9d, 0x8f, 0x81,
@@ -186,105 +190,275 @@ namespace Detail {
             0x80000000, 0x1b000000, 0x36000000, 0x6c000000,
             0xd8000000, 0xab000000, 0xed000000, 0x9a000000 };
 
-        void ByteSub();
+        static uint32_t toWord(uint8_t k1, uint8_t k2, uint8_t k3, uint8_t k4)
+        {
+            uint32_t res = (k1 << 24) | (k2 << 16) | (k3 << 8) | (k4);
+            return res;
+        }
 
-        void ShiftRow();
+        static void toBytes(uint32_t in, uint8_t* res)
+        {
+            uint32_t tmp = in;
+            for (int i = 3; i >= 0; --i) {
+                res[i] = tmp % 256;
+                tmp /= 256;
+            }
+        }
 
-        void MixColumn();
+        static uint8_t GFMul(uint8_t a, uint8_t b)
+        {
+            switch (a) {
+            case 0x01:
+                return kMul01[b];
+            case 0x02:
+                return kMul02[b];
+            case 0x03:
+                return kMul03[b];
+            case 0x09:
+                return kMul09[b];
+            case 0x0b:
+                return kMul0b[b];
+            case 0x0d:
+                return kMul0d[b];
+            case 0x0e:
+                return kMul0e[b];
+            default:
+                return static_cast<uint8_t>(-1);
+            }
+        }
 
-        void InvByteSub();
+        void shiftRow()
+        {
+            for (int i = 1; i < Nb; ++i) {
+                for (int j = 0; j < i; ++j) {
+                    uint8_t tmp = state_[i];
+                    state_[i + 0 * 4] = state_[i + (0 + 1) * 4];
+                    state_[i + 1 * 4] = state_[i + (1 + 1) * 4];
+                    state_[i + 2 * 4] = state_[i + (2 + 1) * 4];
+                    state_[i + 3 * 4] = tmp;
+                }
+            }
+        }
 
-        void InvShiftRow();
+        void mixColumn()
+        {
+            const uint8_t y[16] = { 0x02, 0x03, 0x01, 0x01,
+                0x01, 0x02, 0x03, 0x01,
+                0x01, 0x01, 0x02, 0x03,
+                0x03, 0x01, 0x01, 0x02 };
+            uint8_t arr[4];
+            for (int i = 0; i < 4; ++i) {
+                for (int k = 0; k < 4; ++k) {
+                    arr[k] = 0;
+                    for (int j = 0; j < 4; ++j) {
+                        arr[k] = arr[k] ^ GFMul(y[k * 4 + j], state_[i * 4 + j]);
+                    }
+                }
+                for (int k = 0; k < 4; ++k) {
+                    state_[i * 4 + k] = arr[k];
+                }
+            }
+        }
 
-        void InvMixColumn();
+        void byteSub()
+        {
+            for (auto& i : state_) {
+                i = kSBox[i];
+            }
+        }
 
-        void AddRoundKey(uint32_t* ExpandedKey, int i);
+        void addRoundKey(uint32_t* ExpandedKey, int i)
+        {
+            toBytes(ExpandedKey[Nb * i + 0], round_key_ + 0 * Nb);
+            toBytes(ExpandedKey[Nb * i + 1], round_key_ + 1 * Nb);
+            toBytes(ExpandedKey[Nb * i + 2], round_key_ + 2 * Nb);
+            toBytes(ExpandedKey[Nb * i + 3], round_key_ + 3 * Nb);
+            for (int k = 0; k < Nb * 4; ++k) {
+                state_[k] = state_[k] ^ round_key_[k];
+            }
+        }
 
-        uint8_t GFMul(uint8_t a, uint8_t b);
+        void invByteSub()
+        {
+            for (auto& i : state_) {
+                i = kInvSBox[i];
+            }
+        }
 
-        uint32_t SubByte(uint32_t in);
+        void invShiftRow()
+        {
+            for (int i = 1; i < Nb; i++) {
+                for (int j = 0; j < Nb - i; ++j) {
+                    uint8_t tmp = state_[i];
+                    state_[i + 0 * 4] = state_[i + (0 + 1) * 4];
+                    state_[i + 1 * 4] = state_[i + (1 + 1) * 4];
+                    state_[i + 2 * 4] = state_[i + (2 + 1) * 4];
+                    state_[i + 3 * 4] = tmp;
+                }
+            }
+        }
 
-        uint32_t RotByte(uint32_t in);
+        void invMixColumn()
+        {
+            const uint8_t y[16] = { 0x0e, 0x0b, 0x0d, 0x09,
+                0x09, 0x0e, 0x0b, 0x0d,
+                0x0d, 0x09, 0x0e, 0x0b,
+                0x0b, 0x0d, 0x09, 0x0e };
+            uint8_t arr[4];
+            for (int i = 0; i < Nb; ++i) {
+                for (int k = 0; k < 4; ++k) {
+                    arr[k] = 0;
+                    for (int j = 0; j < 4; ++j) {
+                        arr[k] = arr[k] ^ GFMul(y[k * 4 + j], state_[i * 4 + j]);
+                    }
+                }
+                for (int k = 0; k < 4; ++k) {
+                    state_[i * 4 + k] = arr[k];
+                }
+            }
+        }
 
-        uint32_t toWord(uint8_t k1, uint8_t k2, uint8_t k3, uint8_t k4);
+        uint32_t subByte(uint32_t in)
+        {
+            uint32_t res = 0;
+            uint8_t arr[4];
+            toBytes(in, arr);
+            res = toWord(kSBox[arr[0]], kSBox[arr[1]], kSBox[arr[2]], kSBox[arr[3]]);
+            return res;
+        }
 
-        void toBytes(uint32_t in, uint8_t res[4]);
+        uint32_t rotByte(uint32_t in)
+        {
+            uint32_t res = 0;
+            uint8_t arr[4];
+            toBytes(in, arr);
+            res = toWord(arr[1], arr[2], arr[3], arr[0]);
+            return res;
+        }
 
-        virtual void KeyExpansion() = 0;
+        void keyExpansion()
+        {
+            for (int i = 0; i < Nk; ++i) {
+                w_[i] = toWord(key_[4 * i], key_[4 * i + 1], key_[4 * i + 2], key_[4 * i + 3]);
+            }
+            for (int i = Nk; i < Nb * (Nr + 1); ++i) {
+                auto temp = w_[i - 1];
+                if (i % Nk == 0) {
+                    temp = subByte(rotByte(temp)) ^ Rcon[i / Nk];
+                } else if (Nk == 8 && i % Nk == 4) {
+                    temp = subByte(temp);
+                }
+                w_[i] = w_[i - Nk] ^ temp;
+            }
+        }
 
-        virtual void clear() = 0;
+        std::array<uint8_t, 4 * Nb> plain_ {};
+        std::array<uint8_t, 4 * Nb> cipher_ {};
+        uint8_t state_[4 * Nb] {};
+        uint8_t round_key_[16] {};
+
+        uint32_t w_[Nb * (Nr + 1)] {};
+        std::array<uint8_t, 4 * Nk> key_ {};
 
     public:
-        uint8_t plain[4 * Nb] {};
-        uint8_t cipher[4 * Nb] {};
-        uint8_t state[4 * Nb] {};
-        uint8_t RoundKey[16] {};
+        enum Type {
+            Encrypt,
+            Decrypt
+        };
+        void setKey(std::array<uint8_t, 4 * Nk> key)
+        {
+            key_ = key;
+        }
+        void setPlain(std::array<uint8_t, 4 * Nb> plain)
+        {
+            plain_ = plain;
+        }
+        void setCipher(std::array<uint8_t, 4 * Nb> cipher)
+        {
+            cipher_ = cipher;
+        }
+        void setPlain(const ByteArray& plain)
+        {
+            assert(plain.size() == 4 * Nb);
+            memcpy(plain_.data(), plain.data(), 4 * Nb);
+        }
+        void setCipher(const ByteArray& cipher)
+        {
+            assert(cipher.size() == 4 * Nb);
+            memcpy(cipher_.data(), cipher.data(), 4 * Nb);
+        }
+        void setKey(const ByteArray& key)
+        {
+            assert(key.size() == 4 * Nk);
+            memcpy(key_.data(), key.data(), 4 * Nk);
+        }
 
-        virtual void Encrypt() = 0;
+        std::array<uint8_t, 4 * Nb> getPlainArray() { return plain_; }
+        std::array<uint8_t, 4 * Nb> getCipherArray() { return cipher_; }
+        ByteArray getPlain()
+        {
+            return { reinterpret_cast<byte*>(plain_.data()), 4 * Nb };
+        }
+        ByteArray getCipher()
+        {
+            return { reinterpret_cast<byte*>(cipher_.data()), 4 * Nb };
+        }
+        void init(std::array<uint8_t, 4 * Nb> in, std::array<uint8_t, 4 * Nk> in_key, Type type)
+        {
+            if (type == Encrypt) {
+                setPlain(in);
+            } else {
+                setCipher(in);
+            }
+            setKey(in_key);
+        }
 
-        virtual void Decrypt() = 0;
+        void encrypt()
+        {
+            for (int i = 0; i < 4 * Nb; ++i) {
+                state_[i] = plain_[i];
+            }
+            keyExpansion();
+            for (int i = 0; i <= Nr; ++i) {
+                if (i > 0) {
+                    byteSub();
+                    shiftRow();
+                    if (i < Nr) {
+                        mixColumn();
+                    }
+                }
+                addRoundKey(w_, i);
+            }
+            for (int i = 0; i < 4 * Nb; ++i) {
+                cipher_[i] = state_[i];
+            }
+        }
 
-        virtual void init(uint8_t in[16], uint8_t in_key[16], bool type) = 0;
+        void decrypt()
+        {
+            for (int i = 0; i < 4 * Nb; ++i) {
+                state_[i] = cipher_[i];
+            }
+            keyExpansion();
+            for (int i = Nr; i >= 0; --i) {
+                addRoundKey(w_, i);
+                if (i > 0) {
+                    if (i < Nr) {
+                        invMixColumn();
+                    }
+                    invShiftRow();
+                    invByteSub();
+                }
+            }
+            for (int i = 0; i < 4 * Nb; ++i) {
+                plain_[i] = state_[i];
+            }
+        }
     };
 
-    class AES128Impl : public BaseAESImpl {
-    private:
-        static constexpr int Nr = 10;
-        static constexpr int Nk = 4;
-        uint32_t w[Nb * (Nr + 1)];
+    using AES128Context = BaseAESContext<10, 4>;
+    using AES192Context = BaseAESContext<12, 6>;
+    using AES256Context = BaseAESContext<14, 8>;
 
-        void KeyExpansion() override;
-
-        void clear() override;
-
-    public:
-        void Encrypt() override;
-
-        void Decrypt() override;
-
-        void init(uint8_t in[4 * Nb], uint8_t in_key[4 * Nk], bool type) override;
-
-        uint8_t key[4 * Nk];
-    };
-
-    class AES192Impl : public BaseAESImpl {
-    private:
-        static constexpr int Nr = 12;
-        static constexpr int Nk = 6;
-        uint32_t w[Nb * (Nr + 1)];
-
-        void KeyExpansion() override;
-
-        void clear() override;
-
-    public:
-        void Encrypt() override;
-
-        void Decrypt() override;
-
-        void init(uint8_t in[4 * Nb], uint8_t in_key[4 * Nk], bool type) override;
-
-        uint8_t key[4 * Nk];
-    };
-
-    class AES256Impl : public BaseAESImpl {
-    private:
-        static constexpr int Nr = 14;
-        static constexpr int Nk = 8;
-        uint32_t w[Nb * (Nr + 1)];
-
-        void KeyExpansion() override;
-
-        void clear() override;
-
-    public:
-        void Encrypt() override;
-
-        void Decrypt() override;
-
-        void init(uint8_t in[4 * Nb], uint8_t in_key[4 * Nk], bool type) override;
-
-        uint8_t key[4 * Nk];
-    };
 }
 }

@@ -23,18 +23,18 @@ namespace GMPWrapper {
         BigInt(const char* ptr, int base);
         BigInt(const std::string& str, int base);
         BigInt(const BigInt& other);
-        BigInt(BigInt&& other);
+        BigInt(BigInt&& other) noexcept;
         BigInt& operator=(const BigInt& rhs);
-        BigInt& operator=(BigInt&& rhs);
+        BigInt& operator=(BigInt&& rhs) noexcept;
 
         ~BigInt();
 
         void realloc(size_t bits);
-        BigInt low_n_bit(unsigned int n) const;
-        const int sign() const;
-        const unsigned int to_ui() const;
-        const size_t size_in_base(unsigned int base) const;
-        ByteArray toByteArray() const;
+        [[nodiscard]] BigInt low_n_bit(unsigned int n) const;
+        [[nodiscard]] const int sign() const;
+        [[nodiscard]] const unsigned int to_ui() const;
+        [[nodiscard]] const size_t size_in_base(unsigned int base) const;
+        [[nodiscard]] ByteArray toByteArray() const;
 
         template <typename RNG>
         static BigInt random(RNG& rng, const BigInt& min, const BigInt& max)

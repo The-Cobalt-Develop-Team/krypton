@@ -19,6 +19,8 @@ std::string toHex(const ByteArray&);
 ByteArray fromHex(const std::string&);
 inline ByteArray toBuffer(const std::string& str) { return static_cast<ByteArray>(str); }
 
+inline ByteArray operator""_ba(const char* ptr, size_t len) { return fromHex(std::string(ptr, len)); }
+
 template <typename PrevFunctor>
 class Base64Encode {
 public:

@@ -19,9 +19,9 @@ include_directories(thirdparty/)
 
 set(INSTALL_GTEST OFF)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(thirdparty/gtest)
+find_package(GTest REQUIRED)
 
-include_directories(thirdparty/gtest/googletest/include)
+include_directories(${GTEST_INCLUDE_DIRS})
 
 add_library(gmp thirdparty/minigmp/mini-gmp.c)
 

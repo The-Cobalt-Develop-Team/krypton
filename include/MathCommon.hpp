@@ -80,13 +80,14 @@ private:
     PrimeState()
         : cur_p_(2)
         , cur_n_(0)
+        , prime_()
     {
     }
+
+public:
     PrimeState(const PrimeState&) = delete;
     PrimeState(PrimeState&&) = delete;
     PrimeState& operator=(const PrimeState&) = delete;
-
-public:
     using PrimeType = unsigned long long;
     static constexpr const PrimeType kMaxP = 200000;
     static constexpr const size_t kMaxN = 10000;
@@ -135,7 +136,7 @@ inline bool probablePrime(const NumType& n)
         auto v = power(base, u, n);
         if (v == NumType(1))
             continue;
-        uint64_t s;
+        uint64_t s = 0;
         for (s = 0; s < t; ++s) {
             if (v == n - 1)
                 break;

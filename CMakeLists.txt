@@ -28,7 +28,8 @@ add_library(gmp thirdparty/minigmp/mini-gmp.c)
 add_library(krypton src/GMPWrapper.cpp
                     src/MathCommon.cpp
                     src/Utilities.cpp
-                    src/RSA.cpp)
+                    src/RSA.cpp
+                    src/AES.cpp)
 
 enable_testing()
 include(GoogleTest)

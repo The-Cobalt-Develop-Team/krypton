@@ -17,7 +17,7 @@ void RSAImpl::generateKeyPair()
     BigInt k;
     exgcd(lam, key_.e, k, key_.d);
 }
-BigInt RSAImpl::encrypt(BigInt m) { return power(m, key_.e, key_.n); }
-BigInt RSAImpl::decrypt(BigInt c) { return power(c, key_.d, key_.n); }
+BigInt RSAImpl::encrypt(BigInt m) const { return power(std::move(m), key_.e, key_.n); }
+BigInt RSAImpl::decrypt(BigInt c) const { return power(std::move(c), key_.d, key_.n); }
 
 }

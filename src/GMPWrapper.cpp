@@ -16,6 +16,11 @@ BigInt::BigInt(const char* ptr, int base) { mpz_init_set_str(data_, ptr, base); 
 BigInt::BigInt(const std::string& str, int base) { mpz_init_set_str(data_, str.c_str(), base); }
 BigInt::BigInt(const BigInt& other) { mpz_init_set(data_, other.data_); }
 BigInt::BigInt(BigInt&& other) noexcept { mpz_swap(data_, other.data_); }
+BigInt::BigInt(const ByteArray& other)
+{
+    mpz_init(data_);
+    mpz_import(data_, other.size(), -1, 1, 0, 0, reinterpret_cast<const void*>(other.data()));
+}
 BigInt& BigInt::operator=(const BigInt& rhs)
 {
     mpz_set(this->data_, rhs.data_);
@@ -141,17 +146,26 @@ BigInt operator^(const BigInt& lhs, const BigInt& rhs)
     return res;
 }
 
+std::string BigInt::toString() const
+{
+    char* ptr = mpz_get_str(NULL, 10, this->data_);
+    return { ptr };
+}
+std::string BigInt::toString(size_t base) const
+{
+    char* ptr = mpz_get_str(NULL, base, this->data_);
+    return { ptr };
+}
+
 void swap(BigInt& lhs, BigInt& rhs) { mpz_swap(lhs.data_, rhs.data_); }
 std::string to_string(const BigInt& bi)
 {
-    char* ptr = NULL;
-    mpz_get_str(ptr, 10, bi.data_);
+    char* ptr = mpz_get_str(NULL, 10, bi.data_);
     return std::string(ptr);
 }
 std::string to_string(const BigInt& bi, unsigned int base)
 {
-    char* ptr = NULL;
-    mpz_get_str(ptr, base, bi.data_);
+    char* ptr = mpz_get_str(NULL, base, bi.data_);
     return std::string(ptr);
 }
 BigInt abs(BigInt bi)

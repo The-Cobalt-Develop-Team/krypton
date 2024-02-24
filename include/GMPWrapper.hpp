@@ -19,7 +19,6 @@ namespace GMPWrapper {
         explicit BigInt(unsigned int);
         explicit BigInt(signed int);
         explicit BigInt(const ByteArray& ba);
-        explicit BigInt(ByteArray&& ba);
         BigInt(const char* ptr, int base);
         BigInt(const std::string& str, int base);
         BigInt(const BigInt& other);
@@ -35,6 +34,8 @@ namespace GMPWrapper {
         [[nodiscard]] const unsigned int to_ui() const;
         [[nodiscard]] const size_t size_in_base(unsigned int base) const;
         [[nodiscard]] ByteArray toByteArray() const;
+        [[nodiscard]] std::string toString() const;
+        [[nodiscard]] std::string toString(size_t) const;
 
         template <typename RNG>
         static BigInt random(RNG& rng, const BigInt& min, const BigInt& max)

@@ -41,4 +41,14 @@ public:
     }
 };
 
+struct FunctorFactory {
+    template <typename T>
+    struct Proxy {
+        template <template <typename> typename N>
+        using Next = Proxy<N<T>>;
+    };
+    template <typename T>
+    using Next = Proxy<T>;
+};
+
 }

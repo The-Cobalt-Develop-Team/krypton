@@ -2,13 +2,12 @@
 
 #include "Utilities.hpp"
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <string>
 
 namespace Krypton {
-template <typename Prev>
-struct MD5Hash { };
 
 namespace Detail {
 
@@ -38,10 +37,14 @@ namespace Detail {
         };
 
         static constexpr uint8_t kPadding[] = {
-            0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            0x80, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0
         };
 
         void init();
@@ -61,9 +64,49 @@ namespace Detail {
             , digest()
         {
         }
+        ~MD5HashContext() { delete context; }
+        ByteArray hash(const ByteArray& inp);
+    };
+
+    class SHA1Context {
+    private:
+        static constexpr const uint32_t k[] = { 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 };
+        uint32_t h[5];
+        uint8_t digest[20];
+        uint8_t* buffer;
+        size_t bufsize;
+
+        static uint32_t f(size_t t, uint32_t b, uint32_t c, uint32_t d);
+        void init();
+        void initBuffer(const ByteArray& inp);
+        void updateBlock(const uint8_t* block);
+        void update(const uint8_t* buf, size_t len);
+
+    public:
+        SHA1Context() = default;
+        ~SHA1Context() { delete[] buffer; }
         ByteArray hash(const ByteArray& inp);
     };
 
 }
 
+template <typename Prev>
+struct MD5Hash {
+    template <typename... Args>
+    ByteArray operator()(const Args&... rest)
+    {
+        Detail::MD5HashContext ctx {};
+        return ctx.hash(PrevFunctor(std::forward<Args>(rest)...));
+    }
+};
+
+template <typename Prev>
+struct SHA1Hash {
+    template <typename... Args>
+    ByteArray operator()(const Args&... rest)
+    {
+        Detail::SHA1Context ctx {};
+        return ctx.hash(PrevFunctor(std::forward<Args>(rest)...));
+    }
+};
 }

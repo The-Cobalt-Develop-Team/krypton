@@ -1,16 +1,19 @@
 #include "Hash.hpp"
 #include "Utilities.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 
 #define F_MD5(x, y, z) ((x & y) | (~x & z))
 #define G_MD5(x, y, z) ((x & z) | (y & ~z))
 #define H_MD5(x, y, z) (x ^ y ^ z)
 #define I_MD5(x, y, z) (y ^ (x | ~z))
-#define ROTATE_LEFT_MD5(x, n) ((x << n) | (x >> (32 - n)))
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
-#define FF_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT_MD5((a + F_MD5(b, c, d) + m + t), s)))
-#define GG_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT_MD5((a + G_MD5(b, c, d) + m + t), s)))
-#define HH_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT_MD5((a + H_MD5(b, c, d) + m + t), s)))
-#define II_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT_MD5((a + I_MD5(b, c, d) + m + t), s)))
+#define FF_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + F_MD5(b, c, d) + m + t), s)))
+#define GG_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + G_MD5(b, c, d) + m + t), s)))
+#define HH_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + H_MD5(b, c, d) + m + t), s)))
+#define II_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + I_MD5(b, c, d) + m + t), s)))
 
 namespace Krypton::Detail {
 
@@ -141,6 +144,93 @@ ByteArray MD5HashContext::hash(const ByteArray& inp)
     this->update(reinterpret_cast<const uint8_t*>(inp.data()), inp.size());
     this->final();
     return { reinterpret_cast<byte*>(this->digest), 16 };
+}
+
+uint32_t SHA1Context::f(size_t t, uint32_t b, uint32_t c, uint32_t d)
+{
+    switch (t / 20) {
+    case 0:
+        return (b & c) | ((~b) & d);
+    case 1:
+        return b ^ c ^ d;
+    case 2:
+        return (b & c) | (b & d) | (c & d);
+    case 3:
+        return b ^ c ^ d;
+    default:
+        return -1;
+    }
+}
+
+void SHA1Context::init()
+{
+    h[0] = 0x67452301;
+    h[1] = 0xEFCDAB89;
+    h[2] = 0x98BADCFE;
+    h[3] = 0x10325476;
+    h[4] = 0xC3D2E1F0;
+}
+
+void SHA1Context::updateBlock(const uint8_t* block)
+{
+    static uint32_t w[80];
+    // memcpy(w, ptr, 4 * 16);
+    for (size_t t = 0; t < 16; ++t) {
+        w[t] = (block[4 * t] << 24) | (block[4 * t + 1] << 16) | (block[4 * t + 2] << 8) | block[4 * t + 3];
+    }
+    for (size_t t = 16; t < 80; ++t) {
+        w[t] = ROTATE_LEFT(w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16], 1);
+    }
+    auto a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
+    uint32_t tmp = 0;
+    for (size_t t = 0; t < 80; ++t) {
+        tmp = ROTATE_LEFT(a, 5) + f(t, b, c, d) + e + w[t] + k[t / 20];
+        e = d;
+        d = c;
+        c = ROTATE_LEFT(b, 30);
+        b = a;
+        a = tmp;
+    }
+    h[0] += a;
+    h[1] += b;
+    h[2] += c;
+    h[3] += d;
+    h[4] += e;
+}
+
+void SHA1Context::initBuffer(const ByteArray& inp)
+{
+    uint64_t msglen = inp.size();
+    if (msglen % 64 < 56) {
+        bufsize = (msglen / 64 + 1) * 64;
+    } else {
+        bufsize = (msglen / 64 + 2) * 64;
+    }
+    this->buffer = new uint8_t[bufsize];
+    memset(buffer, 0, bufsize);
+    memcpy(this->buffer, inp.data(), msglen);
+    this->buffer[msglen] = 0x80;
+    for (size_t i = 0; i < 8; ++i) {
+        this->buffer[bufsize - i - 1] = (msglen >> (i * 8)) & 0xff;
+    }
+}
+
+void SHA1Context::update(const uint8_t* buf, size_t len)
+{
+    for (size_t i = 0; i + 63 < len; i += 64) {
+        this->updateBlock(buf + i);
+    }
+}
+
+ByteArray SHA1Context::hash(const ByteArray& inp)
+{
+    this->init();
+    this->initBuffer(inp);
+    this->update(this->buffer, this->bufsize);
+    for (size_t i = 0; i < 20; ++i) {
+        this->digest[i] = (this->h[i / 4] >> ((3 - i % 4) * 8)) & 0xff;
+    }
+    return { reinterpret_cast<byte*>(this->digest), 20 };
 }
 
 }

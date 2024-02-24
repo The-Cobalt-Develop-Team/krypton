@@ -49,9 +49,10 @@ const size_t BigInt::size_in_base(unsigned int base) const { return mpz_sizeinba
 
 ByteArray BigInt::toByteArray() const
 {
-    size_t len;
-    auto ptr = mpz_export(NULL, &len, -1, 1, 0, 0, this->data_);
-    return ByteArray(static_cast<byte*>(ptr), len);
+    size_t len = (mpz_sizeinbase(this->data_, 2) + 7) / 8;
+    ByteArray res(len, 0);
+    mpz_export(res.data(), NULL, -1, 1, 0, 0, this->data_);
+    return res;
 }
 
 BigInt operator+(const BigInt& lhs, const BigInt& rhs)
@@ -148,13 +149,13 @@ BigInt operator^(const BigInt& lhs, const BigInt& rhs)
 
 std::string BigInt::toString() const
 {
-    char* ptr = mpz_get_str(NULL, 10, this->data_);
-    return { ptr };
+    return this->toString(10);
 }
 std::string BigInt::toString(size_t base) const
 {
-    char* ptr = mpz_get_str(NULL, base, this->data_);
-    return { ptr };
+    std::string res(mpz_sizeinbase(this->data_, base), 0);
+    mpz_get_str(res.data(), base, this->data_);
+    return res;
 }
 
 void swap(BigInt& lhs, BigInt& rhs) { mpz_swap(lhs.data_, rhs.data_); }

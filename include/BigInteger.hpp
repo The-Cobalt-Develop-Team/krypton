@@ -1,5 +1,6 @@
 /*
     Big Integer Library for Krypton Project.
+    Warning: This file is discarded. Please rechecked.
     Copyright (C) 2024  Andy Shen
 
     This program is free software: you can redistribute it and/or modify

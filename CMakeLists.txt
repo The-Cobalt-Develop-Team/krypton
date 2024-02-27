@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 
+if(WIN32)
+    cmake_policy(SET CMP0091 NEW)
+endif()
+
 project(Krypton VERSION 0.1.0)
 message(STATUS "[Project] ${PROJECT_NAME}")
 
@@ -37,6 +41,12 @@ add_executable(unittests tests/MathCommonUnitTest.cpp
                          tests/UtilitiesUnitTest.cpp
                          tests/AESUnitTest.cpp
                          tests/HashUnitTest.cpp)
+
+if(WIN32)
+    set_property(TARGET unittests PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set_property(TARGET krypton PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set_property(TARGET gmp PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 target_link_libraries(unittests gmp krypton GTest::gtest_main)
 

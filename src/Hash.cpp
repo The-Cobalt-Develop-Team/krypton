@@ -44,9 +44,6 @@ void MD5HashContext::init()
 
 void MD5HashContext::update(const uint8_t* input, uint32_t inputlen)
 {
-    // context: 已初始化的结构体
-    // input: 需加密的信息
-    // inputlen: 需加密的信息的长度
     uint32_t i = 0, index = 0, partlen = 0;
     index = (context->count[0] >> 3) & 0x3F;
     partlen = 64 - index;
@@ -69,8 +66,6 @@ void MD5HashContext::update(const uint8_t* input, uint32_t inputlen)
 
 void MD5HashContext::final()
 {
-    // context: 加密好的 MD5结构体
-    // digest: 最终保存位置
     uint32_t index = 0, padlen = 0;
     uint8_t bits[8];
     index = (context->count[0] >> 3) & 0x3F;
@@ -106,16 +101,13 @@ void MD5HashContext::decode(uint32_t* output, const uint8_t* input, uint32_t len
 
 void MD5HashContext::transform(uint32_t state[4], const uint8_t block[64])
 {
-    // state: MD5结构体里的 state数组
-    // block: 要加密的 512bits数据块
     uint32_t a[4];
-    // 注意一下，这里 a[0],a[1],a[2],a[3]分别代表 d,c,b,a, 顺序是反的, 方便后面操作
     a[0] = state[3];
     a[1] = state[2];
     a[2] = state[1];
     a[3] = state[0];
     uint32_t x[16];
-    int kinit[4] = { 0, 1, 5, 0 }; // k的初始值
+    int kinit[4] = { 0, 1, 5, 0 }; 
 
     decode(x, block, 64);
     for (int i = 0; i < 4; i++) {

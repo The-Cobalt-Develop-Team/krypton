@@ -230,6 +230,7 @@ void SHA1Context::update(const uint8_t* buf, size_t len)
     }
 }
 
+// TODO: improve performance of sha1
 ByteArray SHA1Context::hash(const ByteArray& inp)
 {
     this->init();

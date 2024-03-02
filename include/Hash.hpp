@@ -105,23 +105,23 @@ namespace Detail {
 
 }
 
-template <typename Prev>
+template <typename PrevFunctor>
 struct MD5Hash {
     template <typename... Args>
-    ByteArray operator()(const Args&... rest)
+    ByteArray operator()(Args&&... rest)
     {
         Detail::MD5HashContext ctx {};
-        return ctx.hash(PrevFunctor(std::forward<Args>(rest)...));
+        return ctx.hash(PrevFunctor {}(std::forward<Args>(rest)...));
     }
 };
 
-template <typename Prev>
+template <typename PrevFunctor>
 struct SHA1Hash {
     template <typename... Args>
-    ByteArray operator()(const Args&... rest)
+    ByteArray operator()(Args&&... rest)
     {
         Detail::SHA1Context ctx {};
-        return ctx.hash(PrevFunctor(std::forward<Args>(rest)...));
+        return ctx.hash(PrevFunctor {}(std::forward<Args>(rest)...));
     }
 };
 }

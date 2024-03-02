@@ -74,6 +74,7 @@ namespace Detail {
         uint8_t digest[16];
 
     public:
+        static constexpr const size_t digestLen = 16;
         MD5HashContext()
             : context(new MD5ContextImpl)
             , digest()
@@ -98,6 +99,7 @@ namespace Detail {
         void update(const uint8_t* buf, size_t len);
 
     public:
+        static constexpr const size_t digestLen = 20;
         SHA1Context() = default;
         ~SHA1Context() { delete[] buffer; }
         ByteArray hash(const ByteArray& inp);

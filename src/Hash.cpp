@@ -107,7 +107,7 @@ void MD5HashContext::transform(uint32_t state[4], const uint8_t block[64])
     a[2] = state[1];
     a[3] = state[0];
     uint32_t x[16];
-    int kinit[4] = { 0, 1, 5, 0 }; 
+    int kinit[4] = { 0, 1, 5, 0 };
 
     decode(x, block, 64);
     for (int i = 0; i < 4; i++) {
@@ -217,6 +217,7 @@ void SHA1Context::initBuffer(const ByteArray& inp)
     memset(buffer, 0, bufsize);
     memcpy(this->buffer, inp.data(), msglen);
     this->buffer[msglen] = 0x80;
+    msglen *= 8;
     for (size_t i = 0; i < 8; ++i) {
         this->buffer[bufsize - i - 1] = (msglen >> (i * 8)) & 0xff;
     }

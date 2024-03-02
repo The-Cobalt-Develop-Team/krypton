@@ -40,9 +40,9 @@ template <typename PrevFunctor>
 class Base64Encode {
 public:
     template <typename... Args>
-    std::string operator()(const Args&... rest)
+    std::string operator()(Args&&... rest)
     {
-        return toBase64(PrevFunctor(std::forward<Args>(rest)...));
+        return toBase64(PrevFunctor {}(std::forward<Args>(rest)...));
     }
 };
 
@@ -50,9 +50,9 @@ template <typename PrevFunctor>
 class Base64Decode {
 public:
     template <typename... Args>
-    ByteArray operator()(const Args&... rest)
+    ByteArray operator()(Args&&... rest)
     {
-        return fromBase64(PrevFunctor(std::forward<Args>(rest)...));
+        return fromBase64(PrevFunctor {}(std::forward<Args>(rest)...));
     }
 };
 
@@ -61,6 +61,7 @@ struct FunctorFactory {
     struct Proxy {
         template <template <typename> typename N>
         using Next = Proxy<N<T>>;
+        using Result = T;
     };
     template <typename T>
     using Next = Proxy<T>;

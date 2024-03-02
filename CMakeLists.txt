@@ -40,7 +40,8 @@ add_executable(unittests tests/MathCommonUnitTest.cpp
                          tests/GMPWrapperUnitTest.cpp
                          tests/UtilitiesUnitTest.cpp
                          tests/AESUnitTest.cpp
-                         tests/HashUnitTest.cpp)
+                         tests/HashUnitTest.cpp
+                         tests/FunctorTest.cpp)
 
 if(WIN32)
     set_property(TARGET unittests PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

@@ -47,3 +47,25 @@ TEST(ByteArrayTest, BigIntTest2)
     ASSERT_EQ(bint.toString(16), "112233445566");
     ASSERT_EQ(bint, "112233445566"_bix);
 }
+
+TEST(ByteArrayTest, ByteArrayStreamTest1)
+{
+    using Krypton::operator""_ba;
+    ByteArray ba = "665544332211"_ba;
+    ByteArrayStream bas(ba);
+    bas << 0xaa << "bbccddee"_ba;
+    auto res = bas.str();
+    ASSERT_EQ(toHex(res), "665544332211AABBCCDDEE");
+}
+
+TEST(ByteArrayTest, ByteArrayStreamTest2)
+{
+    using Krypton::operator""_ba;
+    ByteArray ba = "665544332211"_ba;
+    ByteArrayStream bas(ba);
+    byte c;
+    bas >> c;
+    ASSERT_EQ(c, 0x66);
+    bas >> c;
+    ASSERT_EQ(c, 0x55);
+}

@@ -26,7 +26,7 @@ namespace Krypton {
 using byte = char;
 using ByteArray = std::basic_string<byte>;
 using ByteArrayView = std::basic_string_view<byte>;
-using ByteArrayStream = std::basic_stringstream<byte>;
+// using ByteArrayStream = std::basic_stringstream<byte>;
 
 std::string toBase64(const ByteArray&);
 ByteArray fromBase64(const std::string&);
@@ -36,13 +36,54 @@ inline ByteArray toBuffer(const std::string& str) { return static_cast<ByteArray
 
 inline ByteArray operator""_ba(const char* ptr, size_t len) { return fromHex(std::string(ptr, len)); }
 
+// TODO: refactor ByteArrayStream
+class ByteArrayStream {
+private:
+    ByteArray buf;
+    size_t cur = 0;
+
+public:
+    ByteArrayStream(const ByteArray& ba)
+        : buf(ba)
+    {
+    }
+    ByteArrayStream(size_t bufs)
+        : buf(bufs, static_cast<byte>(0))
+    {
+    }
+    void reset() { cur = 0; }
+    ByteArrayStream& operator<<(byte c)
+    {
+        buf.push_back(c);
+        return *this;
+    }
+    ByteArrayStream& operator<<(const ByteArray& ba)
+    {
+        buf.append(ba);
+        return *this;
+    }
+    ByteArrayStream& operator>>(byte& c)
+    {
+        c = buf[cur++];
+        return *this;
+    }
+    ByteArrayStream& operator>>(ByteArray& other)
+    {
+        auto len = other.length();
+        for (size_t i = 0; i < len && cur < buf.size(); ++i, ++cur)
+            other[i] = buf[cur];
+        return *this;
+    }
+    ByteArray str() { return this->buf; }
+};
+
 template <typename PrevFunctor>
 class Base64Encode {
 public:
     template <typename... Args>
-    std::string operator()(const Args&... rest)
+    std::string operator()(Args&&... rest)
     {
-        return toBase64(PrevFunctor(std::forward<Args>(rest)...));
+        return toBase64(PrevFunctor {}(std::forward<Args>(rest)...));
     }
 };
 
@@ -50,9 +91,9 @@ template <typename PrevFunctor>
 class Base64Decode {
 public:
     template <typename... Args>
-    ByteArray operator()(const Args&... rest)
+    ByteArray operator()(Args&&... rest)
     {
-        return fromBase64(PrevFunctor(std::forward<Args>(rest)...));
+        return fromBase64(PrevFunctor {}(std::forward<Args>(rest)...));
     }
 };
 
@@ -61,6 +102,7 @@ struct FunctorFactory {
     struct Proxy {
         template <template <typename> typename N>
         using Next = Proxy<N<T>>;
+        using Result = T;
     };
     template <typename T>
     using Next = Proxy<T>;

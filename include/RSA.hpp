@@ -16,6 +16,8 @@
 #pragma once
 
 #include "GMPWrapper.hpp"
+#include "Hash.hpp"
+#include "Utilities.hpp"
 
 namespace Krypton {
 
@@ -36,6 +38,7 @@ namespace Detail {
         RSAImpl& operator=(const RSAImpl&) = delete;
 
         void generateKeyPair();
+        const RSAKeyPair& getKeyPair();
         [[nodiscard]] BigInt encrypt(BigInt m) const;
         [[nodiscard]] BigInt decrypt(BigInt c) const;
 

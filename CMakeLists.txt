@@ -36,8 +36,7 @@ add_library(krypton src/GMPWrapper.cpp
                     src/MathCommon.cpp
                     src/Utilities.cpp
                     src/RSA.cpp
-                    src/Hash.cpp
-                    src/asn1.cpp)
+                    src/Hash.cpp)
 
 enable_testing()
 include(GoogleTest)

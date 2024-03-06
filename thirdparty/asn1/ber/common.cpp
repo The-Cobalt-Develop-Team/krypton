@@ -599,93 +599,93 @@ size_t asn1::ber::encode_real(double n, uint8_t* buf)
   }
 }
 
-size_t asn1::ber::encode_utc_time(time_t t, uint8_t* buf)
-{
-  struct tm tm;
-  gmtime_r(&t, &tm);
+// size_t asn1::ber::encode_utc_time(time_t t, uint8_t* buf)
+// {
+//   struct tm tm;
+//   gmtime_r(&t, &tm);
 
-  unsigned year = tm.tm_year - 100;
-  unsigned mon = 1 + tm.tm_mon;
+//   unsigned year = tm.tm_year - 100;
+//   unsigned mon = 1 + tm.tm_mon;
 
-  buf[0] = '0' + (year / 10);
-  buf[1] = '0' + (year % 10);
-  buf[2] = '0' + (mon / 10);
-  buf[3] = '0' + (mon % 10);
-  buf[4] = '0' + (tm.tm_mday / 10);
-  buf[5] = '0' + (tm.tm_mday % 10);
-  buf[6] = '0' + (tm.tm_hour / 10);
-  buf[7] = '0' + (tm.tm_hour % 10);
-  buf[8] = '0' + (tm.tm_min / 10);
-  buf[9] = '0' + (tm.tm_min % 10);
-  buf[10] = '0' + (tm.tm_sec / 10);
-  buf[11] = '0' + (tm.tm_sec % 10);
-  buf[12] = 'Z';
+//   buf[0] = '0' + (year / 10);
+//   buf[1] = '0' + (year % 10);
+//   buf[2] = '0' + (mon / 10);
+//   buf[3] = '0' + (mon % 10);
+//   buf[4] = '0' + (tm.tm_mday / 10);
+//   buf[5] = '0' + (tm.tm_mday % 10);
+//   buf[6] = '0' + (tm.tm_hour / 10);
+//   buf[7] = '0' + (tm.tm_hour % 10);
+//   buf[8] = '0' + (tm.tm_min / 10);
+//   buf[9] = '0' + (tm.tm_min % 10);
+//   buf[10] = '0' + (tm.tm_sec / 10);
+//   buf[11] = '0' + (tm.tm_sec % 10);
+//   buf[12] = 'Z';
 
-  return 13;
-}
+//   return 13;
+// }
 
-size_t asn1::ber::encode_generalized_time(const struct timeval& tv,
-                                          uint8_t* buf)
-{
-  struct tm tm;
-  gmtime_r(&tv.tv_sec, &tm);
+// size_t asn1::ber::encode_generalized_time(const struct timeval& tv,
+//                                           uint8_t* buf)
+// {
+//   struct tm tm;
+//   gmtime_r(&tv.tv_sec, &tm);
 
-  unsigned year = 1900 + tm.tm_year;
-  unsigned mon = 1 + tm.tm_mon;
+//   unsigned year = 1900 + tm.tm_year;
+//   unsigned mon = 1 + tm.tm_mon;
 
-  buf[0] = '0' + (year / 1000);
-  year %= 1000;
+//   buf[0] = '0' + (year / 1000);
+//   year %= 1000;
 
-  buf[1] = '0' + (year / 100);
-  year %= 100;
+//   buf[1] = '0' + (year / 100);
+//   year %= 100;
 
-  buf[2] = '0' + (year / 10);
-  buf[3] = '0' + (year % 10);
+//   buf[2] = '0' + (year / 10);
+//   buf[3] = '0' + (year % 10);
 
-  buf[4] = '0' + (mon / 10);
-  buf[5] = '0' + (mon % 10);
-  buf[6] = '0' + (tm.tm_mday / 10);
-  buf[7] = '0' + (tm.tm_mday % 10);
-  buf[8] = '0' + (tm.tm_hour / 10);
-  buf[9] = '0' + (tm.tm_hour % 10);
-  buf[10] = '0' + (tm.tm_min / 10);
-  buf[11] = '0' + (tm.tm_min % 10);
-  buf[12] = '0' + (tm.tm_sec / 10);
-  buf[13] = '0' + (tm.tm_sec % 10);
+//   buf[4] = '0' + (mon / 10);
+//   buf[5] = '0' + (mon % 10);
+//   buf[6] = '0' + (tm.tm_mday / 10);
+//   buf[7] = '0' + (tm.tm_mday % 10);
+//   buf[8] = '0' + (tm.tm_hour / 10);
+//   buf[9] = '0' + (tm.tm_hour % 10);
+//   buf[10] = '0' + (tm.tm_min / 10);
+//   buf[11] = '0' + (tm.tm_min % 10);
+//   buf[12] = '0' + (tm.tm_sec / 10);
+//   buf[13] = '0' + (tm.tm_sec % 10);
 
-  size_t len;
+//   size_t len;
 
-  if (tv.tv_usec != 0) {
-    unsigned ms;
-    if ((ms = tv.tv_usec / 1000) != 0) {
-      buf[14] = '.';
+//   if (tv.tv_usec != 0) {
+//     unsigned ms;
+//     if ((ms = tv.tv_usec / 1000) != 0) {
+//       buf[14] = '.';
 
-      buf[15] = '0' + (ms / 100);
+//       buf[15] = '0' + (ms / 100);
 
-      if ((ms %= 100) != 0) {
-        buf[16] = '0' + (ms / 10);
+//       if ((ms %= 100) != 0) {
+//         buf[16] = '0' + (ms / 10);
 
-        if ((ms %= 10) != 0) {
-          buf[17] = '0' + ms;
+//         if ((ms %= 10) != 0) {
+//           buf[17] = '0' + ms;
 
-          len = 18;
-        } else {
-          len = 17;
-        }
-      } else {
-        len = 16;
-      }
-    } else {
-      len = 14;
-    }
-  } else {
-    len = 14;
-  }
+//           len = 18;
+//         } else {
+//           len = 17;
+//         }
+//       } else {
+//         len = 16;
+//       }
+//     } else {
+//       len = 14;
+//     }
+//   } else {
+//     len = 14;
+//   }
 
-  buf[len] = 'Z';
+//   buf[len] = 'Z';
 
-  return len + 1;
-}
+//   return len + 1;
+// }
 
 int64_t asn1::ber::decode_integer(const void* buf, uint64_t len)
 {
@@ -1383,133 +1383,133 @@ bool asn1::ber::decode_real(const void* buf, uint64_t len, double& n)
   return false;
 }
 
-bool asn1::ber::decode_utc_time(const void* buf, uint64_t len, time_t& t)
-{
-  const uint8_t* const b = static_cast<const uint8_t*>(buf);
+// bool asn1::ber::decode_utc_time(const void* buf, uint64_t len, time_t& t)
+// {
+//   const uint8_t* const b = static_cast<const uint8_t*>(buf);
 
-  if ((IS_DIGIT(b[0])) &&
-      (IS_DIGIT(b[1])) &&
-      (IS_DIGIT(b[2])) &&
-      (IS_DIGIT(b[3])) &&
-      (IS_DIGIT(b[4])) &&
-      (IS_DIGIT(b[5])) &&
-      (IS_DIGIT(b[6])) &&
-      (IS_DIGIT(b[7])) &&
-      (IS_DIGIT(b[8])) &&
-      (IS_DIGIT(b[9]))) {
-    struct tm tm;
-    tm.tm_year = ((b[0] - '0') * 10) + (b[1] - '0');
+//   if ((IS_DIGIT(b[0])) &&
+//       (IS_DIGIT(b[1])) &&
+//       (IS_DIGIT(b[2])) &&
+//       (IS_DIGIT(b[3])) &&
+//       (IS_DIGIT(b[4])) &&
+//       (IS_DIGIT(b[5])) &&
+//       (IS_DIGIT(b[6])) &&
+//       (IS_DIGIT(b[7])) &&
+//       (IS_DIGIT(b[8])) &&
+//       (IS_DIGIT(b[9]))) {
+//     struct tm tm;
+//     tm.tm_year = ((b[0] - '0') * 10) + (b[1] - '0');
 
-    if (tm.tm_year < 70) {
-      tm.tm_year += 100;
-    }
+//     if (tm.tm_year < 70) {
+//       tm.tm_year += 100;
+//     }
 
-    tm.tm_mon = ((b[2] - '0') * 10) + (b[3] - '0');
+//     tm.tm_mon = ((b[2] - '0') * 10) + (b[3] - '0');
 
-    if ((tm.tm_mon >= 1) && (tm.tm_mon <= 12)) {
-      tm.tm_mon--;
+//     if ((tm.tm_mon >= 1) && (tm.tm_mon <= 12)) {
+//       tm.tm_mon--;
 
-      tm.tm_mday = ((b[4] - '0') * 10) + (b[5] - '0');
+//       tm.tm_mday = ((b[4] - '0') * 10) + (b[5] - '0');
 
-      if ((tm.tm_mday >= 1) && (tm.tm_mday <= 31)) {
-        tm.tm_hour = ((b[6] - '0') * 10) + (b[7] - '0');
+//       if ((tm.tm_mday >= 1) && (tm.tm_mday <= 31)) {
+//         tm.tm_hour = ((b[6] - '0') * 10) + (b[7] - '0');
 
-        if (tm.tm_hour <= 23) {
-          tm.tm_min = ((b[8] - '0') * 10) + (b[9] - '0');
+//         if (tm.tm_hour <= 23) {
+//           tm.tm_min = ((b[8] - '0') * 10) + (b[9] - '0');
 
-          if (tm.tm_min <= 59) {
-            tm.tm_isdst = -1;
+//           if (tm.tm_min <= 59) {
+//             tm.tm_isdst = -1;
 
-            size_t off;
+//             size_t off;
 
-            switch (b[10]) {
-              case 'Z':
-                if (len == 11) {
-                  tm.tm_sec = 0;
+//             switch (b[10]) {
+//               case 'Z':
+//                 if (len == 11) {
+//                   tm.tm_sec = 0;
 
-                  t = timegm(&tm);
+//                   t = timegm(&tm);
 
-                  return true;
-                } else {
-                  return false;
-                }
+//                   return true;
+//                 } else {
+//                   return false;
+//                 }
 
-                break;
-              case '0':
-              case '1':
-              case '2':
-              case '3':
-              case '4':
-              case '5':
-                if ((len >= 13) && (IS_DIGIT(b[11]))) {
-                  tm.tm_sec = ((b[10] - '0') * 10) + (b[11] - '0');
+//                 break;
+//               case '0':
+//               case '1':
+//               case '2':
+//               case '3':
+//               case '4':
+//               case '5':
+//                 if ((len >= 13) && (IS_DIGIT(b[11]))) {
+//                   tm.tm_sec = ((b[10] - '0') * 10) + (b[11] - '0');
 
-                  switch (b[12]) {
-                    case 'Z':
-                      if (len == 13) {
-                        t = timegm(&tm);
+//                   switch (b[12]) {
+//                     case 'Z':
+//                       if (len == 13) {
+//                         t = timegm(&tm);
 
-                        return true;
-                      } else {
-                        return false;
-                      }
+//                         return true;
+//                       } else {
+//                         return false;
+//                       }
 
-                      break;
-                    case '+':
-                    case '-':
-                      off = 13;
-                      break;
-                    default:
-                      return false;
-                  }
-                } else {
-                  return false;
-                }
+//                       break;
+//                     case '+':
+//                     case '-':
+//                       off = 13;
+//                       break;
+//                     default:
+//                       return false;
+//                   }
+//                 } else {
+//                   return false;
+//                 }
 
-                break;
-              case '+':
-              case '-':
-                tm.tm_sec = 0;
+//                 break;
+//               case '+':
+//               case '-':
+//                 tm.tm_sec = 0;
 
-                off = 11;
+//                 off = 11;
 
-                break;
-              default:
-                return false;
-            }
+//                 break;
+//               default:
+//                 return false;
+//             }
 
-            if (off + 4 == len) {
-              if ((IS_DIGIT(b[off])) &&
-                  (IS_DIGIT(b[off + 1])) &&
-                  (IS_DIGIT(b[off + 2])) &&
-                  (IS_DIGIT(b[off + 3]))) {
-                unsigned hour = ((b[off] - '0') * 10) + (b[off + 1] - '0');
+//             if (off + 4 == len) {
+//               if ((IS_DIGIT(b[off])) &&
+//                   (IS_DIGIT(b[off + 1])) &&
+//                   (IS_DIGIT(b[off + 2])) &&
+//                   (IS_DIGIT(b[off + 3]))) {
+//                 unsigned hour = ((b[off] - '0') * 10) + (b[off + 1] - '0');
 
-                if (hour <= 23) {
-                  unsigned min = ((b[off + 2] - '0') * 10) + (b[off + 3] - '0');
+//                 if (hour <= 23) {
+//                   unsigned min = ((b[off + 2] - '0') * 10) + (b[off + 3] - '0');
 
-                  if (min <= 59) {
-                    time_t diff = (hour * 3600) + (min * 60);
+//                   if (min <= 59) {
+//                     time_t diff = (hour * 3600) + (min * 60);
 
-                    if (b[off - 1] == '+') {
-                      t = timegm(&tm) - diff;
-                    } else {
-                      t = timegm(&tm) + diff;
-                    }
+//                     if (b[off - 1] == '+') {
+//                       t = timegm(&tm) - diff;
+//                     } else {
+//                       t = timegm(&tm) + diff;
+//                     }
 
-                    return true;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+//                     return true;
+//                   }
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
 static bool decode_time_fraction(const uint8_t* b,
                                  uint64_t len,
@@ -1545,261 +1545,261 @@ static bool decode_time_fraction(const uint8_t* b,
   }
 }
 
-bool asn1::ber::decode_generalized_time(const void* buf,
-                                        uint64_t len,
-                                        struct timeval& tv)
-{
-  const uint8_t* const b = static_cast<const uint8_t*>(buf);
+// bool asn1::ber::decode_generalized_time(const void* buf,
+//                                         uint64_t len,
+//                                         struct timeval& tv)
+// {
+//   const uint8_t* const b = static_cast<const uint8_t*>(buf);
 
-  if ((len >= 10) &&
-      (IS_DIGIT(b[0])) &&
-      (IS_DIGIT(b[1])) &&
-      (IS_DIGIT(b[2])) &&
-      (IS_DIGIT(b[3])) &&
-      (IS_DIGIT(b[4])) &&
-      (IS_DIGIT(b[5])) &&
-      (IS_DIGIT(b[6])) &&
-      (IS_DIGIT(b[7])) &&
-      (IS_DIGIT(b[8])) &&
-      (IS_DIGIT(b[9]))) {
-    struct tm tm;
-    tm.tm_year = ((b[0] - '0') * 1000) +
-                 ((b[1] - '0') * 100) +
-                 ((b[2] - '0') * 10) +
-                  (b[3] - '0');
+//   if ((len >= 10) &&
+//       (IS_DIGIT(b[0])) &&
+//       (IS_DIGIT(b[1])) &&
+//       (IS_DIGIT(b[2])) &&
+//       (IS_DIGIT(b[3])) &&
+//       (IS_DIGIT(b[4])) &&
+//       (IS_DIGIT(b[5])) &&
+//       (IS_DIGIT(b[6])) &&
+//       (IS_DIGIT(b[7])) &&
+//       (IS_DIGIT(b[8])) &&
+//       (IS_DIGIT(b[9]))) {
+//     struct tm tm;
+//     tm.tm_year = ((b[0] - '0') * 1000) +
+//                  ((b[1] - '0') * 100) +
+//                  ((b[2] - '0') * 10) +
+//                   (b[3] - '0');
 
-    if (tm.tm_year >= 1970) {
-      tm.tm_year -= 1900;
+//     if (tm.tm_year >= 1970) {
+//       tm.tm_year -= 1900;
 
-      tm.tm_mon = ((b[4] - '0') * 10) + (b[5] - '0');
+//       tm.tm_mon = ((b[4] - '0') * 10) + (b[5] - '0');
 
-      if ((tm.tm_mon >= 1) && (tm.tm_mon <= 12)) {
-        tm.tm_mon--;
+//       if ((tm.tm_mon >= 1) && (tm.tm_mon <= 12)) {
+//         tm.tm_mon--;
 
-        tm.tm_mday = ((b[6] - '0') * 10) + (b[7] - '0');
+//         tm.tm_mday = ((b[6] - '0') * 10) + (b[7] - '0');
 
-        if ((tm.tm_mday >= 1) && (tm.tm_mday <= 31)) {
-          tm.tm_hour = ((b[8] - '0') * 10) + (b[9] - '0');
+//         if ((tm.tm_mday >= 1) && (tm.tm_mday <= 31)) {
+//           tm.tm_hour = ((b[8] - '0') * 10) + (b[9] - '0');
 
-          if (tm.tm_hour <= 23) {
-            tm.tm_isdst = -1;
+//           if (tm.tm_hour <= 23) {
+//             tm.tm_isdst = -1;
 
-            uint64_t off;
+//             uint64_t off;
 
-            if (len >= 12) {
-              switch (b[10]) {
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                  if (IS_DIGIT(b[11])) {
-                    tm.tm_min = ((b[10] - '0') * 10) + (b[11] - '0');
+//             if (len >= 12) {
+//               switch (b[10]) {
+//                 case '0':
+//                 case '1':
+//                 case '2':
+//                 case '3':
+//                 case '4':
+//                 case '5':
+//                   if (IS_DIGIT(b[11])) {
+//                     tm.tm_min = ((b[10] - '0') * 10) + (b[11] - '0');
 
-                    if (len >= 14) {
-                      switch (b[12]) {
-                        case '0':
-                        case '1':
-                        case '2':
-                        case '3':
-                        case '4':
-                        case '5':
-                          if (IS_DIGIT(b[13])) {
-                            tm.tm_sec = ((b[12] - '0') * 10) + (b[13] - '0');
+//                     if (len >= 14) {
+//                       switch (b[12]) {
+//                         case '0':
+//                         case '1':
+//                         case '2':
+//                         case '3':
+//                         case '4':
+//                         case '5':
+//                           if (IS_DIGIT(b[13])) {
+//                             tm.tm_sec = ((b[12] - '0') * 10) + (b[13] - '0');
 
-                            if (len >= 16) {
-                              switch (b[14]) {
-                                case '.':
-                                case ',':
-                                  {
-                                    off = 15;
+//                             if (len >= 16) {
+//                               switch (b[14]) {
+//                                 case '.':
+//                                 case ',':
+//                                   {
+//                                     off = 15;
 
-                                    uint64_t fraction;
-                                    uint64_t total;
+//                                     uint64_t fraction;
+//                                     uint64_t total;
 
-                                    if (decode_time_fraction(b,
-                                                             len,
-                                                             off,
-                                                             1000000ull,
-                                                             fraction,
-                                                             total)) {
-                                      tv.tv_usec = fraction *
-                                                   (1000000ull / total);
-                                    } else {
-                                      return false;
-                                    }
-                                  }
+//                                     if (decode_time_fraction(b,
+//                                                              len,
+//                                                              off,
+//                                                              1000000ull,
+//                                                              fraction,
+//                                                              total)) {
+//                                       tv.tv_usec = fraction *
+//                                                    (1000000ull / total);
+//                                     } else {
+//                                       return false;
+//                                     }
+//                                   }
 
-                                  break;
-                                default:
-                                  tv.tv_usec = 0;
+//                                   break;
+//                                 default:
+//                                   tv.tv_usec = 0;
 
-                                  off = 14;
-                              }
-                            } else {
-                              tv.tv_usec = 0;
+//                                   off = 14;
+//                               }
+//                             } else {
+//                               tv.tv_usec = 0;
 
-                              off = 14;
-                            }
-                          } else {
-                            return false;
-                          }
+//                               off = 14;
+//                             }
+//                           } else {
+//                             return false;
+//                           }
 
-                          break;
-                        case '.':
-                        case ',':
-                          {
-                            off = 13;
+//                           break;
+//                         case '.':
+//                         case ',':
+//                           {
+//                             off = 13;
 
-                            uint64_t fraction;
-                            uint64_t total;
+//                             uint64_t fraction;
+//                             uint64_t total;
 
-                            if (decode_time_fraction(b,
-                                                     len,
-                                                     off,
-                                                     10000000ull,
-                                                     fraction,
-                                                     total)) {
-                              uint64_t microseconds = fraction *
-                                                      (60000000ull / total);
+//                             if (decode_time_fraction(b,
+//                                                      len,
+//                                                      off,
+//                                                      10000000ull,
+//                                                      fraction,
+//                                                      total)) {
+//                               uint64_t microseconds = fraction *
+//                                                       (60000000ull / total);
 
-                              tm.tm_sec = microseconds / 1000000ull;
-                              tv.tv_usec = microseconds % 1000000ull;
-                            } else {
-                              return false;
-                            }
-                          }
+//                               tm.tm_sec = microseconds / 1000000ull;
+//                               tv.tv_usec = microseconds % 1000000ull;
+//                             } else {
+//                               return false;
+//                             }
+//                           }
 
-                          break;
-                        default:
-                          tm.tm_sec = 0;
+//                           break;
+//                         default:
+//                           tm.tm_sec = 0;
 
-                          tv.tv_usec = 0;
+//                           tv.tv_usec = 0;
 
-                          off = 12;
-                      }
-                    } else {
-                      tm.tm_sec = 0;
+//                           off = 12;
+//                       }
+//                     } else {
+//                       tm.tm_sec = 0;
 
-                      tv.tv_usec = 0;
+//                       tv.tv_usec = 0;
 
-                      off = 12;
-                    }
-                  } else {
-                    return false;
-                  }
+//                       off = 12;
+//                     }
+//                   } else {
+//                     return false;
+//                   }
 
-                  break;
-                case '.':
-                case ',':
-                  {
-                    off = 11;
+//                   break;
+//                 case '.':
+//                 case ',':
+//                   {
+//                     off = 11;
 
-                    uint64_t fraction;
-                    uint64_t total;
+//                     uint64_t fraction;
+//                     uint64_t total;
 
-                    if (decode_time_fraction(b,
-                                             len,
-                                             off,
-                                             100000000ull,
-                                             fraction,
-                                             total)) {
-                      uint64_t microseconds = fraction *
-                                              (3600000000ull / total);
+//                     if (decode_time_fraction(b,
+//                                              len,
+//                                              off,
+//                                              100000000ull,
+//                                              fraction,
+//                                              total)) {
+//                       uint64_t microseconds = fraction *
+//                                               (3600000000ull / total);
 
-                      tm.tm_min = microseconds / 60000000ull;
+//                       tm.tm_min = microseconds / 60000000ull;
 
-                      microseconds %= 60000000ull;
+//                       microseconds %= 60000000ull;
 
-                      tm.tm_sec = microseconds / 1000000ull;
-                      tv.tv_usec = microseconds % 1000000ull;
-                    } else {
-                      return false;
-                    }
-                  }
+//                       tm.tm_sec = microseconds / 1000000ull;
+//                       tv.tv_usec = microseconds % 1000000ull;
+//                     } else {
+//                       return false;
+//                     }
+//                   }
 
-                  break;
-                default:
-                  tm.tm_min = 0;
-                  tm.tm_sec = 0;
+//                   break;
+//                 default:
+//                   tm.tm_min = 0;
+//                   tm.tm_sec = 0;
 
-                  tv.tv_usec = 0;
+//                   tv.tv_usec = 0;
 
-                  off = 10;
-              }
-            } else {
-              tm.tm_min = 0;
-              tm.tm_sec = 0;
+//                   off = 10;
+//               }
+//             } else {
+//               tm.tm_min = 0;
+//               tm.tm_sec = 0;
 
-              tv.tv_usec = 0;
+//               tv.tv_usec = 0;
 
-              off = 10;
-            }
+//               off = 10;
+//             }
 
-            if (off + 1 == len) {
-              if (b[off] == 'Z') {
-                // UTC.
-                tv.tv_sec = timegm(&tm);
+//             if (off + 1 == len) {
+//               if (b[off] == 'Z') {
+//                 // UTC.
+//                 tv.tv_sec = timegm(&tm);
 
-                return true;
-              }
-            } else if (off == len) {
-              // Local time.
-              tv.tv_sec = mktime(&tm);
+//                 return true;
+//               }
+//             } else if (off == len) {
+//               // Local time.
+//               tv.tv_sec = mktime(&tm);
 
-              return true;
-            } else if (off + 3 == len) {
-              if (((b[off] == '+') || (b[off] == '-')) &&
-                  (IS_DIGIT(b[off + 1])) &&
-                  (IS_DIGIT(b[off + 2]))) {
-                unsigned hour = ((b[off + 1] - '0') * 10) + (b[off + 2] - '0');
+//               return true;
+//             } else if (off + 3 == len) {
+//               if (((b[off] == '+') || (b[off] == '-')) &&
+//                   (IS_DIGIT(b[off + 1])) &&
+//                   (IS_DIGIT(b[off + 2]))) {
+//                 unsigned hour = ((b[off + 1] - '0') * 10) + (b[off + 2] - '0');
 
-                if (hour <= 23) {
-                  time_t diff = hour * 3600;
+//                 if (hour <= 23) {
+//                   time_t diff = hour * 3600;
 
-                  if (b[off] == '+') {
-                    tv.tv_sec = timegm(&tm) - diff;
-                  } else {
-                    tv.tv_sec = timegm(&tm) + diff;
-                  }
+//                   if (b[off] == '+') {
+//                     tv.tv_sec = timegm(&tm) - diff;
+//                   } else {
+//                     tv.tv_sec = timegm(&tm) + diff;
+//                   }
 
-                  return true;
-                }
-              }
-            } else if (off + 5 == len) {
-              if (((b[off] == '+') || (b[off] == '-')) &&
-                  (IS_DIGIT(b[off + 1])) &&
-                  (IS_DIGIT(b[off + 2])) &&
-                  (IS_DIGIT(b[off + 3])) &&
-                  (IS_DIGIT(b[off + 4]))) {
-                unsigned hour = ((b[off + 1] - '0') * 10) + (b[off + 2] - '0');
+//                   return true;
+//                 }
+//               }
+//             } else if (off + 5 == len) {
+//               if (((b[off] == '+') || (b[off] == '-')) &&
+//                   (IS_DIGIT(b[off + 1])) &&
+//                   (IS_DIGIT(b[off + 2])) &&
+//                   (IS_DIGIT(b[off + 3])) &&
+//                   (IS_DIGIT(b[off + 4]))) {
+//                 unsigned hour = ((b[off + 1] - '0') * 10) + (b[off + 2] - '0');
 
-                if (hour <= 23) {
-                  unsigned min = ((b[off + 3] - '0') * 10) + (b[off + 4] - '0');
+//                 if (hour <= 23) {
+//                   unsigned min = ((b[off + 3] - '0') * 10) + (b[off + 4] - '0');
 
-                  if (min <= 59) {
-                    time_t diff = (hour * 3600) + (min * 60);
+//                   if (min <= 59) {
+//                     time_t diff = (hour * 3600) + (min * 60);
 
-                    if (b[off] == '+') {
-                      tv.tv_sec = timegm(&tm) - diff;
-                    } else {
-                      tv.tv_sec = timegm(&tm) + diff;
-                    }
+//                     if (b[off] == '+') {
+//                       tv.tv_sec = timegm(&tm) - diff;
+//                     } else {
+//                       tv.tv_sec = timegm(&tm) + diff;
+//                     }
 
-                    return true;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+//                     return true;
+//                   }
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
 bool asn1::ber::decode_oid(const void* buf,
                            uint64_t len,

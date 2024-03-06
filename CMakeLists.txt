@@ -36,7 +36,8 @@ add_library(krypton src/GMPWrapper.cpp
                     src/MathCommon.cpp
                     src/Utilities.cpp
                     src/RSA.cpp
-                    src/Hash.cpp)
+                    src/Hash.cpp
+                    src/ASN1.cpp)
 
 enable_testing()
 include(GoogleTest)
@@ -47,7 +48,8 @@ add_executable(unittests tests/MathCommonUnitTest.cpp
                          tests/AESUnitTest.cpp
                          tests/HashUnitTest.cpp
                          tests/FunctorTest.cpp
-                         tests/AlgorithmUnitTest.cpp)
+                         tests/AlgorithmUnitTest.cpp
+                         tests/ASN1UnitTest.cpp)
 
 if(WIN32)
     set_property(TARGET unittests PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

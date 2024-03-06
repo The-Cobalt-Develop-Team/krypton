@@ -76,6 +76,6 @@ TEST(ByteArrayTest, ByteArrayStreamTest3)
     ByteArray ba = "112233445566"_ba;
     ByteArray buf;
     ByteArrayStream bas(ba);
-    bas.out(buf, 3);
+    bas.get(buf, 3);
     ASSERT_EQ(buf, "112233"_ba);
 }

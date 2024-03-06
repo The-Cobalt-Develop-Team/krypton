@@ -43,6 +43,10 @@ private:
     size_t cur = 0;
 
 public:
+    ByteArrayStream()
+        : buf()
+    {
+    }
     ByteArrayStream(const ByteArray& ba)
         : buf(ba)
     {
@@ -75,13 +79,28 @@ public:
         return *this;
     }
     // TODO: Refactor
-    ByteArrayStream& out(ByteArray& other, size_t len)
+    ByteArrayStream& get(ByteArray& other, size_t len)
     {
         other.resize(len);
         for (size_t i = 0; i < len && cur < buf.size(); ++i, ++cur)
             other[i] = buf[cur];
         return *this;
     }
+    byte getc() { return buf[cur++]; }
+    size_t get(const void*& buf, size_t len)
+    {
+        auto remain = this->buf.length() - this->cur;
+        if (remain < len)
+            len = remain;
+        buf = this->buf.data() + this->cur;
+        cur += len;
+        return len;
+    }
+    bool eof() const
+    {
+        return cur >= this->buf.length();
+    }
+    size_t offset() const { return cur; }
     ByteArray str() { return this->buf; }
 };
 

@@ -69,3 +69,13 @@ TEST(ByteArrayTest, ByteArrayStreamTest2)
     bas >> c;
     ASSERT_EQ(c, 0x55);
 }
+
+TEST(ByteArrayTest, ByteArrayStreamTest3)
+{
+    using Krypton::operator""_ba;
+    ByteArray ba = "112233445566"_ba;
+    ByteArray buf;
+    ByteArrayStream bas(ba);
+    bas.out(buf, 3);
+    ASSERT_EQ(buf, "112233"_ba);
+}

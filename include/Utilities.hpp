@@ -74,6 +74,14 @@ public:
             other[i] = buf[cur];
         return *this;
     }
+    // TODO: Refactor
+    ByteArrayStream& out(ByteArray& other, size_t len)
+    {
+        other.resize(len);
+        for (size_t i = 0; i < len && cur < buf.size(); ++i, ++cur)
+            other[i] = buf[cur];
+        return *this;
+    }
     ByteArray str() { return this->buf; }
 };
 

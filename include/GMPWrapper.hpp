@@ -52,6 +52,9 @@ namespace GMPWrapper {
         [[nodiscard]] std::string toString() const;
         [[nodiscard]] std::string toString(size_t) const;
 
+        BigInt power(size_t pow, const BigInt& mod) const;
+        BigInt power(const BigInt& pow, const BigInt& mod) const;
+
         template <typename RNG>
         static BigInt random(RNG& rng, const BigInt& min, const BigInt& max)
         {

@@ -130,7 +130,6 @@ namespace Detail {
         uint8_t* buffer;
         size_t bufsize;
 
-        static uint32_t f(size_t t, uint32_t b, uint32_t c, uint32_t d);
         void init();
         void initBuffer(const ByteArray& inp);
         void updateBlock(const uint8_t* block);

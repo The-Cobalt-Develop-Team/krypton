@@ -42,8 +42,8 @@ namespace Detail {
         void setPrivateKey(const BigInt& n, const BigInt& d);
         void setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, const BigInt& dq, const BigInt& qinv);
         void generatePublicKey();
-        [[nodiscard]] BigInt encrypt(BigInt m) const;
-        [[nodiscard]] BigInt decrypt(BigInt c) const;
+        [[nodiscard]] BigInt encrypt(const BigInt& m) const;
+        [[nodiscard]] BigInt decrypt(const BigInt& c) const;
 
     private:
         RSAKeyPair key_;

@@ -34,7 +34,7 @@ BigInt::BigInt(BigInt&& other) noexcept { mpz_swap(data_, other.data_); }
 BigInt::BigInt(const ByteArray& other)
 {
     mpz_init(data_);
-    mpz_import(data_, other.size(), -1, 1, 0, 0, reinterpret_cast<const void*>(other.data()));
+    mpz_import(data_, other.size(), 1, 1, 0, 0, reinterpret_cast<const void*>(other.data()));
 }
 BigInt& BigInt::operator=(const BigInt& rhs)
 {
@@ -62,11 +62,25 @@ const int BigInt::sign() const { return mpz_sgn(this->data_); }
 const unsigned int BigInt::to_ui() const { return mpz_get_ui(this->data_); }
 const size_t BigInt::size_in_base(unsigned int base) const { return mpz_sizeinbase(this->data_, base); }
 
+BigInt BigInt::power(size_t pow, const BigInt& mod) const
+{
+    BigInt res;
+    mpz_powm_ui(res.data_, this->data_, pow, mod.data_);
+    return res;
+}
+
+BigInt BigInt::power(const BigInt& pow, const BigInt& mod) const
+{
+    BigInt res;
+    mpz_powm(res.data_, this->data_, pow.data_, mod.data_);
+    return res;
+}
+
 ByteArray BigInt::toByteArray() const
 {
     size_t len = (mpz_sizeinbase(this->data_, 2) + 7) / 8;
     ByteArray res(len, 0);
-    mpz_export(res.data(), NULL, -1, 1, 0, 0, this->data_);
+    mpz_export(res.data(), NULL, 1, 1, 0, 0, this->data_);
     return res;
 }
 

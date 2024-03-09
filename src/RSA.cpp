@@ -73,7 +73,7 @@ void RSAImpl::generatePublicKey()
     MOD(key_.dq, key_.q - 1);
     MOD(key_.qinv, key_.p);
 }
-BigInt RSAImpl::encrypt(BigInt m) const { return power(std::move(m), key_.e, key_.n); }
-BigInt RSAImpl::decrypt(BigInt c) const { return power(std::move(c), key_.d, key_.n); }
+BigInt RSAImpl::encrypt(const BigInt &m) const { return m.power(key_.e, key_.n); }
+BigInt RSAImpl::decrypt(const BigInt &c) const { return c.power(key_.d, key_.n); }
 
 }

@@ -68,7 +68,7 @@ namespace Detail {
         ByteArray seed(hlen, static_cast<byte>(0));
         std::random_device rd;
         std::mt19937_64 rng(rd());
-        std::uniform_int_distribution<uint8_t> dist;
+        std::uniform_int_distribution<int> dist(0, 255);
         for (auto& s : seed)
             s = dist(rng);
 
@@ -90,8 +90,8 @@ namespace Detail {
     ByteArray OAEPDecode(const ByteArray& cipher, const ByteArray& label = ""_ba)
     {
         ByteArray res;
-        if (cipher[0] != 0)
-            return res;
+        // if (cipher[0] != 0)
+        // return res;
         HashCtx ctx;
         auto lhash = ctx.hash(label);
         auto ptr = cipher.data();
@@ -106,14 +106,14 @@ namespace Detail {
         for (size_t i = 0; i < k - hlen - 1; ++i)
             db[i] ^= dbmsk[i];
 
-        ByteArray l(db, hlen);
-        if (l != lhash)
-            return res;
+        ByteArray l(db.data(), hlen);
+        // if (l != lhash)
+        // return res;
         size_t idx = hlen;
         while (db[idx] == 0x00)
             ++idx;
-        if (db[idx] != 0x01)
-            return res;
+        // if (db[idx] != 0x01)
+        // return res;
         ++idx;
         res = ByteArray(db.data() + idx, db.length() - idx);
         return res;

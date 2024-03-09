@@ -29,7 +29,7 @@ namespace Detail {
     class RSAImpl {
     public:
         struct RSAKeyPair {
-            BigInt n, e, d;
+            BigInt n, e, d, p, q, dp, dq, qinv;
         };
 
         RSAImpl() = default;
@@ -39,6 +39,9 @@ namespace Detail {
 
         void generateKeyPair();
         const RSAKeyPair& getKeyPair();
+        void setPrivateKey(const BigInt& n, const BigInt& d);
+        void setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, const BigInt& dq, const BigInt& qinv);
+        void generatePublicKey();
         [[nodiscard]] BigInt encrypt(BigInt m) const;
         [[nodiscard]] BigInt decrypt(BigInt c) const;
 

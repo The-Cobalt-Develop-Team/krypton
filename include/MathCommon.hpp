@@ -61,7 +61,6 @@ NumType gcd(const NumType& lhs, const NumType& rhs)
 template <typename NumType>
 NumType lcm(const NumType& lhs, const NumType& rhs) { return lhs * rhs / gcd(lhs, rhs); }
 
-// NOTE: a > b is required
 template <typename NumType>
 NumType exgcd(const NumType& a, const NumType& b, NumType& x, NumType& y)
 {

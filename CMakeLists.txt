@@ -47,6 +47,7 @@ add_executable(unittests tests/MathCommonUnitTest.cpp
                          tests/GMPWrapperUnitTest.cpp
                          tests/UtilitiesUnitTest.cpp
                          tests/AESUnitTest.cpp
+                         tests/RSAUnitTest.cpp
                          tests/HashUnitTest.cpp
                          tests/FunctorTest.cpp
                          tests/AlgorithmUnitTest.cpp

@@ -31,8 +31,8 @@ namespace GMPWrapper {
     class BigInt {
     public:
         BigInt();
-        explicit BigInt(unsigned int);
-        explicit BigInt(signed int);
+        BigInt(unsigned int);
+        BigInt(signed int);
         explicit BigInt(const ByteArray& ba);
         BigInt(const char* ptr, int base);
         BigInt(const std::string& str, int base);

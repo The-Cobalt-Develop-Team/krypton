@@ -5,6 +5,7 @@
 using Krypton::ByteArray;
 using Krypton::Detail::MD5HashContext;
 using Krypton::Detail::SHA1Context;
+using Krypton::Detail::SHA256Context;
 using Krypton::operator""_ba;
 
 using namespace Krypton;
@@ -22,6 +23,15 @@ TEST(HashTest, SHA1Test1)
 {
     SHA1Context ctx {};
     ByteArray expres = "4fc67490b5f5b0a5fae0465809e35d2baf7ec247"_ba;
+    auto buf = toBuffer("Yoimiya!");
+    auto res = ctx.hash(buf);
+    ASSERT_EQ(toHex(res), toHex(expres));
+}
+
+TEST(HashTest, SHA256Test1)
+{
+    SHA256Context ctx {};
+    ByteArray expres = "0286d38bcfb643142bac5dcdb3c01d251be51cb4803fcdb95d7a45baeaac389c"_ba;
     auto buf = toBuffer("Yoimiya!");
     auto res = ctx.hash(buf);
     ASSERT_EQ(toHex(res), toHex(expres));

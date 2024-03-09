@@ -23,12 +23,13 @@
 #define G_MD5(x, y, z) ((x & z) | (y & ~z))
 #define H_MD5(x, y, z) (x ^ y ^ z)
 #define I_MD5(x, y, z) (y ^ (x | ~z))
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
+#define ROTL(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
+#define ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
 
-#define FF_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + F_MD5(b, c, d) + m + t), s)))
-#define GG_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + G_MD5(b, c, d) + m + t), s)))
-#define HH_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + H_MD5(b, c, d) + m + t), s)))
-#define II_MD5(a, b, c, d, m, s, t) (a = b + (ROTATE_LEFT((a + I_MD5(b, c, d) + m + t), s)))
+#define FF_MD5(a, b, c, d, m, s, t) (a = b + (ROTL((a + F_MD5(b, c, d) + m + t), s)))
+#define GG_MD5(a, b, c, d, m, s, t) (a = b + (ROTL((a + G_MD5(b, c, d) + m + t), s)))
+#define HH_MD5(a, b, c, d, m, s, t) (a = b + (ROTL((a + H_MD5(b, c, d) + m + t), s)))
+#define II_MD5(a, b, c, d, m, s, t) (a = b + (ROTL((a + I_MD5(b, c, d) + m + t), s)))
 
 namespace Krypton::Detail {
 
@@ -186,15 +187,15 @@ void SHA1Context::updateBlock(const uint8_t* block)
         w[t] = (block[4 * t] << 24) | (block[4 * t + 1] << 16) | (block[4 * t + 2] << 8) | block[4 * t + 3];
     }
     for (size_t t = 16; t < 80; ++t) {
-        w[t] = ROTATE_LEFT(w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16], 1);
+        w[t] = ROTL(w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16], 1);
     }
     auto a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
     uint32_t tmp = 0;
     for (size_t t = 0; t < 80; ++t) {
-        tmp = ROTATE_LEFT(a, 5) + f(t, b, c, d) + e + w[t] + k[t / 20];
+        tmp = ROTL(a, 5) + f(t, b, c, d) + e + w[t] + k[t / 20];
         e = d;
         d = c;
-        c = ROTATE_LEFT(b, 30);
+        c = ROTL(b, 30);
         b = a;
         a = tmp;
     }
@@ -240,6 +241,87 @@ ByteArray SHA1Context::hash(const ByteArray& inp)
         this->digest[i] = (this->h[i / 4] >> ((3 - i % 4) * 8)) & 0xff;
     }
     return { reinterpret_cast<byte*>(this->digest), 20 };
+}
+
+#define CH(x, y, z) (((x) & (y)) ^ ((~(x)) & (z)))
+#define MAJ(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
+#define BSIG0_SHA256(x) (ROTR((x), 2) ^ ROTR((x), 13) ^ ROTR((x), 22))
+#define BSIG1_SHA256(x) (ROTR((x), 6) ^ ROTR((x), 11) ^ ROTR((x), 25))
+#define SSIG0_SHA256(x) (ROTR((x), 7) ^ ROTR((x), 18) ^ ((x) >> 3))
+#define SSIG1_SHA256(x) (ROTR((x), 17) ^ ROTR((x), 19) ^ ((x) >> 10))
+
+void SHA256Context::init()
+{
+    h[0] = 0x6a09e667;
+    h[1] = 0xbb67ae85;
+    h[2] = 0x3c6ef372;
+    h[3] = 0xa54ff53a;
+    h[4] = 0x510e527f;
+    h[5] = 0x9b05688c;
+    h[6] = 0x1f83d9ab;
+    h[7] = 0x5be0cd19;
+}
+
+void SHA256Context::updateBlock(const uint8_t* block)
+{
+    static uint32_t w[64];
+    for (size_t t = 0; t < 16; ++t) {
+        w[t] = (block[4 * t] << 24) | (block[4 * t + 1] << 16) | (block[4 * t + 2] << 8) | block[4 * t + 3];
+    }
+    for (size_t t = 16; t < 64; ++t) {
+        w[t] = SSIG1_SHA256(w[t - 2]) + w[t - 7] + SSIG0_SHA256(w[t - 15]) + w[t - 16];
+    }
+    uint32_t b[8];
+    for (size_t i = 0; i < 8; ++i)
+        b[i] = h[i];
+    uint32_t t1 = 0, t2 = 0;
+    for (size_t t = 0; t < 64; ++t) {
+        t1 = b[7] + BSIG1_SHA256(b[4]) + CH(b[4], b[5], b[6]) + k[t] + w[t];
+        t2 = BSIG0_SHA256(b[0]) + MAJ(b[0], b[1], b[2]);
+        for (size_t i = 7; i > 0; --i)
+            b[i] = b[i - 1];
+        b[4] += t1;
+        b[0] = t1 + t2;
+    }
+    for (size_t i = 0; i < 8; ++i)
+        h[i] += b[i];
+}
+
+void SHA256Context::initBuffer(const ByteArray& inp)
+{
+    uint64_t msglen = inp.size();
+    if (msglen % 64 < 56) {
+        bufsize = (msglen / 64 + 1) * 64;
+    } else {
+        bufsize = (msglen / 64 + 2) * 64;
+    }
+    this->buffer = new uint8_t[bufsize];
+    memset(buffer, 0, bufsize);
+    memcpy(this->buffer, inp.data(), msglen);
+    this->buffer[msglen] = 0x80;
+    msglen *= 8;
+    for (size_t i = 0; i < 8; ++i) {
+        this->buffer[bufsize - i - 1] = (msglen >> (i * 8)) & 0xff;
+    }
+}
+
+void SHA256Context::update(const uint8_t* buf, size_t len)
+{
+    for (size_t i = 0; i + 63 < len; i += 64) {
+        this->updateBlock(buf + i);
+    }
+}
+
+// TODO: improve performance of sha256
+ByteArray SHA256Context::hash(const ByteArray& inp)
+{
+    this->init();
+    this->initBuffer(inp);
+    this->update(this->buffer, this->bufsize);
+    for (size_t i = 0; i < digestLen; ++i) {
+        this->digest[i] = (this->h[i / 4] >> ((3 - i % 4) * 8)) & 0xff;
+    }
+    return { reinterpret_cast<byte*>(this->digest), digestLen };
 }
 
 }

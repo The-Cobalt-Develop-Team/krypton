@@ -28,16 +28,17 @@ include_directories(${GTEST_INCLUDE_DIRS})
 add_library(gmp thirdparty/minigmp/mini-gmp.c)
 
 # TODO: remove ASN1 external dependence
-add_library(asn1 thirdparty/asn1/ber/common.cpp
-                 thirdparty/asn1/ber/decoder.cpp
-                 thirdparty/asn1/ber/tag.cpp)
+# add_library(asn1 thirdparty/asn1/ber/common.cpp
+#                  thirdparty/asn1/ber/decoder.cpp
+#                  thirdparty/asn1/ber/tag.cpp)
 
 add_library(krypton src/GMPWrapper.cpp
                     src/MathCommon.cpp
                     src/Utilities.cpp
                     src/RSA.cpp
                     src/Hash.cpp
-                    src/ASN1.cpp)
+                    # src/ASN1.cpp
+                    )
 
 enable_testing()
 include(GoogleTest)
@@ -49,15 +50,16 @@ add_executable(unittests tests/MathCommonUnitTest.cpp
                          tests/HashUnitTest.cpp
                          tests/FunctorTest.cpp
                          tests/AlgorithmUnitTest.cpp
-                         tests/ASN1UnitTest.cpp)
+                        #  tests/ASN1UnitTest.cpp
+                         )
 
 if(WIN32)
     set_property(TARGET unittests PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     set_property(TARGET krypton PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     set_property(TARGET gmp PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    set_property(TARGET asn1 PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    # set_property(TARGET asn1 PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-target_link_libraries(unittests gmp krypton asn1 GTest::gtest_main)
+target_link_libraries(unittests gmp krypton GTest::gtest_main)
 
 gtest_discover_tests(unittests)

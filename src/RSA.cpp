@@ -47,6 +47,7 @@ void RSAImpl::setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, 
     key_.dp = dp;
     key_.dq = dq;
     key_.qinv = qinv;
+    this->generatePublicKey();
     // this->key_.n = key_.p * key_.q;
     // BigInt lam = (key_.p - 1) * (key_.q - 1);
     // BigInt k;

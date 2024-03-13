@@ -22,23 +22,46 @@ namespace Krypton {
 
 std::string toBase64(const ByteArray& buf)
 {
-    static constexpr const char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    static constexpr const char padding = '=';
-    std::stringstream ss;
-    size_t idx;
-    uint32_t x;
-    for (idx = 0; idx + 2 < buf.size(); idx += 3) {
-        x = (buf[idx] << 16) | (buf[idx + 1] << 8) | (buf[idx + 2]);
-        ss << table[(x >> 18) & 0x3f] << table[(x >> 12) & 0x3f] << table[(x >> 6) & 0x3f] << table[x & 0x3f];
+    static constexpr const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    auto bytes_to_encode = buf.data();
+    auto in_len = buf.length();
+    std::string ret;
+    int i = 0;
+    int j = 0;
+    unsigned char char_array_3[3]; // store 3 byte of bytes_to_encode
+    unsigned char char_array_4[4]; // store encoded character to 4 bytes
+
+    while (in_len--) {
+        char_array_3[i++] = *(bytes_to_encode++); // get three bytes (24 bits)
+        if (i == 3) {
+            // eg. we have 3 bytes as ( 0100 1101, 0110 0001, 0110 1110) --> (010011, 010110, 000101, 101110)
+            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2; // get first 6 bits of first byte,
+            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4); // get last 2 bits of first byte and first 4 bit of second byte
+            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6); // get last 4 bits of second byte and first 2 bits of third byte
+            char_array_4[3] = char_array_3[2] & 0x3f; // get last 6 bits of third byte
+
+            for (i = 0; (i < 4); i++)
+                ret += base64_chars[char_array_4[i]];
+            i = 0;
+        }
     }
-    if (idx == buf.size() - 1) {
-        x = (buf[idx] << 4);
-        ss << table[(x >> 6)] << table[x & 0x3f] << padding << padding;
-    } else if (idx == buf.size() - 2) {
-        x = (buf[idx] << 10) | (buf[idx + 1] << 2);
-        ss << table[(x >> 12) & 0x3f] << table[(x >> 6) & 0x3f] << table[x & 0x3f] << padding;
+
+    if (i) {
+        for (j = i; j < 3; j++)
+            char_array_3[j] = '\0';
+
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+
+        for (j = 0; (j < i + 1); j++)
+            ret += base64_chars[char_array_4[j]];
+
+        while ((i++ < 3))
+            ret += '=';
     }
-    return ss.str();
+
+    return ret;
 }
 
 ByteArray fromBase64(const std::string& str)

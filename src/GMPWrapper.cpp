@@ -76,11 +76,11 @@ BigInt BigInt::power(const BigInt& pow, const BigInt& mod) const
     return res;
 }
 
-ByteArray BigInt::toByteArray() const
+ByteArray BigInt::toByteArray(size_t offset) const
 {
     size_t len = (mpz_sizeinbase(this->data_, 2) + 7) / 8;
-    ByteArray res(len, 0);
-    mpz_export(res.data(), NULL, 1, 1, 0, 0, this->data_);
+    ByteArray res(len + offset, 0);
+    mpz_export(res.data() + offset, NULL, 1, 1, 0, 0, this->data_);
     return res;
 }
 

@@ -90,8 +90,8 @@ namespace Detail {
     ByteArray OAEPDecode(const ByteArray& cipher, const ByteArray& label = ""_ba)
     {
         ByteArray res;
-        // if (cipher[0] != 0)
-        // return res;
+        if (cipher[0] != 0)
+            return res;
         HashCtx ctx;
         auto lhash = ctx.hash(label);
         auto ptr = cipher.data();
@@ -107,13 +107,13 @@ namespace Detail {
             db[i] ^= dbmsk[i];
 
         ByteArray l(db.data(), hlen);
-        // if (l != lhash)
-        // return res;
+        if (l != lhash)
+            return res;
         size_t idx = hlen;
         while (db[idx] == 0x00)
             ++idx;
-        // if (db[idx] != 0x01)
-        // return res;
+        if (db[idx] != 0x01)
+            return res;
         ++idx;
         res = ByteArray(db.data() + idx, db.length() - idx);
         return res;

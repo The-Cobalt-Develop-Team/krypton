@@ -35,29 +35,33 @@ void RSAImpl::generateKeyPair()
     exgcd(lam, key_.e, k, key_.d);
 }
 const RSAImpl::RSAKeyPair& RSAImpl::getKeyPair() { return this->key_; }
-void RSAImpl::setPrivateKey(const BigInt& n, const BigInt& d)
+void RSAImpl::setPrivateKey(const BigInt& n, const BigInt& d, size_t keylen)
 {
     this->key_.n = n;
     this->key_.d = d;
+    this->key_.keylen = keylen;
 }
-void RSAImpl::setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, const BigInt& dq, const BigInt& qinv)
+void RSAImpl::setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, const BigInt& dq, const BigInt& qinv, size_t keylen)
 {
     key_.p = p;
     key_.q = q;
     key_.dp = dp;
     key_.dq = dq;
     key_.qinv = qinv;
+    key_.keylen = keylen;
     this->generatePublicKey();
-    // this->key_.n = key_.p * key_.q;
-    // BigInt lam = (key_.p - 1) * (key_.q - 1);
-    // BigInt k;
-    // exgcd(lam, key_.e, k, key_.d);
-    // exgcd(key_.p - 1, key_.e, k, key_.dp);
-    // exgcd(key_.q - 1, key_.e, k, key_.dq);
-    // exgcd(key_.p, key_.q, k, key_.qinv);
-    // assert(key_.dp == dp);
-    // assert(key_.dq == dq);
-    // assert(key_.qinv == qinv);
+}
+void RSAImpl::setPrivateKey(const ByteArray& n, const ByteArray& d)
+{
+    key_.keylen = n.length() * 8;
+    key_.d = BigInt(d);
+    key_.n = BigInt(n);
+}
+void RSAImpl::setPublicKey(const ByteArray& n, const ByteArray& e)
+{
+    key_.keylen = n.length() * 8;
+    key_.e = BigInt(e);
+    key_.n = BigInt(n);
 }
 void RSAImpl::generatePublicKey()
 {
@@ -74,7 +78,19 @@ void RSAImpl::generatePublicKey()
     MOD(key_.dq, key_.q - 1);
     MOD(key_.qinv, key_.p);
 }
-BigInt RSAImpl::encrypt(const BigInt &m) const { return m.power(key_.e, key_.n); }
-BigInt RSAImpl::decrypt(const BigInt &c) const { return c.power(key_.d, key_.n); }
+ByteArray RSAImpl::encrypt(const ByteArray& m) const
+{
+    auto mbi = BigInt(m);
+    auto cbi = encryptImpl(mbi);
+    return cbi.toByteArray(this->key_.keylen / 8 - cbi.size_in_base() / 8);
+}
+ByteArray RSAImpl::decrypt(const ByteArray& c) const
+{
+    auto len = c.length();
+    auto plain = decryptImpl(BigInt(c));
+    return plain.toByteArray(len - plain.size_in_base() / 8);
+}
+BigInt RSAImpl::encryptImpl(const BigInt& m) const { return m.power(key_.e, key_.n); }
+BigInt RSAImpl::decryptImpl(const BigInt& c) const { return c.power(key_.d, key_.n); }
 
 }

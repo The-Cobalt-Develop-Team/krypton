@@ -47,8 +47,8 @@ namespace GMPWrapper {
         [[nodiscard]] BigInt low_n_bit(unsigned int n) const;
         [[nodiscard]] const int sign() const;
         [[nodiscard]] const unsigned int to_ui() const;
-        [[nodiscard]] const size_t size_in_base(unsigned int base) const;
-        [[nodiscard]] ByteArray toByteArray() const;
+        [[nodiscard]] const size_t size_in_base(unsigned int base = 2) const;
+        [[nodiscard]] ByteArray toByteArray(size_t offset = 0) const;
         [[nodiscard]] std::string toString() const;
         [[nodiscard]] std::string toString(size_t) const;
 

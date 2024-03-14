@@ -30,6 +30,8 @@ namespace Detail {
     public:
         struct RSAKeyPair {
             BigInt n, e, d, p, q, dp, dq, qinv;
+            // keylen is the size of n in bits
+            size_t keylen;
         };
 
         RSAImpl() = default;
@@ -39,13 +41,17 @@ namespace Detail {
 
         void generateKeyPair();
         const RSAKeyPair& getKeyPair();
-        void setPrivateKey(const BigInt& n, const BigInt& d);
-        void setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, const BigInt& dq, const BigInt& qinv);
-        void generatePublicKey();
-        [[nodiscard]] BigInt encrypt(const BigInt& m) const;
-        [[nodiscard]] BigInt decrypt(const BigInt& c) const;
+        void setPrivateKey(const BigInt& n, const BigInt& d, size_t keylen);
+        void setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, const BigInt& dq, const BigInt& qinv, size_t keylen);
+        void setPrivateKey(const ByteArray& n, const ByteArray& d);
+        void setPublicKey(const ByteArray& n, const ByteArray& e);
+        [[nodiscard]] ByteArray decrypt(const ByteArray& c) const;
+        [[nodiscard]] ByteArray encrypt(const ByteArray& m) const;
 
     private:
+        void generatePublicKey();
+        [[nodiscard]] BigInt encryptImpl(const BigInt& m) const;
+        [[nodiscard]] BigInt decryptImpl(const BigInt& c) const;
         RSAKeyPair key_;
     };
 }

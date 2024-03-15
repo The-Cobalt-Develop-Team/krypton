@@ -74,8 +74,13 @@ TEST(RSATest, RSAOAEPEncryptTest1)
     Detail::RSAImpl rsactx;
     rsactx.setPublicKey(n, e);
     rsactx.setPrivateKey(n, d);
-    auto ciph = rsactx.encrypt(plain);
-    ASSERT_EQ(ciph.length() - 1, 128);
-    auto dec = rsactx.decrypt(ciph);
+    ASSERT_EQ(rsactx.getKeyPair().keylen, 1024);
+    auto oaepplain = Detail::OAEPEncodeImpl(plain, rsactx.getKeyLen() / 8);
+    ASSERT_EQ(Detail::OAEPDecode(oaepplain), plain);
+    auto ciph = rsactx.encrypt(oaepplain);
+    ASSERT_EQ(ciph.length(), rsactx.getKeyLen() / 8);
+    auto dersa = rsactx.decrypt(ciph);
+    ASSERT_EQ(toHex(dersa), toHex(oaepplain));
+    auto dec = Detail::OAEPDecode(dersa);
     ASSERT_EQ(dec, plain);
 }

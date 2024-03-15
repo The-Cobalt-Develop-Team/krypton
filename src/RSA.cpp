@@ -82,13 +82,14 @@ ByteArray RSAImpl::encrypt(const ByteArray& m) const
 {
     auto mbi = BigInt(m);
     auto cbi = encryptImpl(mbi);
-    return cbi.toByteArray(this->key_.keylen / 8 - cbi.size_in_base() / 8);
+    auto offset = (this->key_.keylen / 8) - ((cbi.size_in_base() + 7) / 8);
+    return cbi.toByteArray(offset);
 }
 ByteArray RSAImpl::decrypt(const ByteArray& c) const
 {
-    auto len = c.length();
+    auto len = key_.keylen / 8;
     auto plain = decryptImpl(BigInt(c));
-    return plain.toByteArray(len - plain.size_in_base() / 8);
+    return plain.toByteArray(len - (plain.size_in_base() + 7) / 8);
 }
 BigInt RSAImpl::encryptImpl(const BigInt& m) const { return m.power(key_.e, key_.n); }
 BigInt RSAImpl::decryptImpl(const BigInt& c) const { return c.power(key_.d, key_.n); }

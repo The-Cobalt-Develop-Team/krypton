@@ -99,6 +99,7 @@ namespace Detail {
         void update(const uint8_t* buf, size_t len);
 
     public:
+        // len of digest in bytes
         static constexpr const size_t digestLen = 20;
         SHA1Context() = default;
         ~SHA1Context() { delete[] buffer; }

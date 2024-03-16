@@ -41,6 +41,7 @@ namespace Detail {
 
         void generateKeyPair();
         const RSAKeyPair& getKeyPair();
+        size_t getKeyLen() const { return this->key_.keylen; }
         void setPrivateKey(const BigInt& n, const BigInt& d, size_t keylen);
         void setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, const BigInt& dq, const BigInt& qinv, size_t keylen);
         void setPrivateKey(const ByteArray& n, const ByteArray& d);

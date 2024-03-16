@@ -87,7 +87,7 @@ namespace Detail {
     };
 
     struct OAEPException : std::exception {
-        char const* what() const override
+        [[nodiscard]] const char* what() const noexcept override
         {
             return "Invalid OAEP Text";
         }

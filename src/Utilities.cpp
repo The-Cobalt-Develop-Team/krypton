@@ -125,8 +125,12 @@ ByteArray fromHex(const std::string& str)
         0, 10, 11, 12, 13, 14, 15
     };
     ByteArray buf;
-    buf.reserve(str.length() / 2);
-    for (size_t i = 0; i + 1 < str.length(); i += 2) {
+    size_t i = 0;
+    if (str.length() % 2 == 1) {
+        buf.push_back(table[str[i]]);
+        ++i;
+    }
+    for (; i + 1 < str.length(); i += 2) {
         buf.push_back((table[str[i]] << 4) | table[str[i + 1]]);
     }
     return buf;

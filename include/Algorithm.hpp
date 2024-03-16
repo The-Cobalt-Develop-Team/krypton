@@ -89,13 +89,13 @@ namespace Detail {
     struct OAEPException : std::exception {
         [[nodiscard]] const char* what() const noexcept override
         {
-            return "Invalid OAEP Text";
+            return "Invalid OAEP ByteArray";
         }
     };
 
     // TODO: exception
     template <typename HashCtx = SHA1Context, typename MGF = MGF1Impl>
-    ByteArray OAEPDecode(const ByteArray& cipher, const ByteArray& label = ""_ba)
+    ByteArray OAEPDecodeImpl(const ByteArray& cipher, const ByteArray& label = ""_ba)
     {
         ByteArray res;
         if (cipher[0] != 0)
@@ -126,5 +126,15 @@ namespace Detail {
         res = ByteArray(db.data() + idx, db.length() - idx);
         return res;
     }
+
+    struct PKCS1Exception : std::exception {
+        [[nodiscard]] const char* what() const noexcept override
+        {
+            return "Invalid PKCS #1 Text";
+        }
+    };
+
+    ByteArray PKCS1EncodeImpl(const ByteArray& plain, size_t k);
+    ByteArray PKCS1DecodeImpl(const ByteArray& cipher);
 };
 }

@@ -38,6 +38,7 @@ add_library(krypton src/GMPWrapper.cpp
                     src/RSA.cpp
                     src/Hash.cpp
                     # src/ASN1.cpp
+                    src/Algorithm.cpp
                     )
 
 enable_testing()

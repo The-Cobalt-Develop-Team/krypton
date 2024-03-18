@@ -53,6 +53,7 @@ add_executable(unittests tests/MathCommonUnitTest.cpp
                          tests/FunctorTest.cpp
                          tests/AlgorithmUnitTest.cpp
                         #  tests/ASN1UnitTest.cpp
+                         tests/BlockModeUnitTest.cpp
                          )
 
 if(WIN32)

@@ -377,6 +377,8 @@ namespace Detail {
         std::array<uint8_t, 4 * Nk> key_ {};
 
     public:
+        static constexpr const int kBlockSize = Nb * 4;
+        static constexpr const int kKeySize = Nk;
         enum Type {
             Encrypt,
             Decrypt

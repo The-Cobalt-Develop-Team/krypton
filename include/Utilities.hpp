@@ -36,6 +36,16 @@ inline ByteArray toBuffer(const std::string& str) { return static_cast<ByteArray
 
 inline ByteArray operator""_ba(const char* ptr, size_t len) { return fromHex(std::string(ptr, len)); }
 
+// Note: lhs.length() must equals to rhs.length()
+inline ByteArray baxor(const ByteArray& lhs, const ByteArray& rhs)
+{
+    ByteArray res;
+    res.resize(lhs.length());
+    for (size_t i = 0; i < lhs.length(); ++i)
+        res[i] = lhs[i] ^ rhs[i];
+    return res;
+}
+
 // TODO: refactor ByteArrayStream
 class ByteArrayStream {
 private:

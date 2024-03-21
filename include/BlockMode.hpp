@@ -95,5 +95,58 @@ namespace Detail {
         ByteArray iv_;
         ByteArray temp_;
     };
+
+    // TODO: CFB with segment size of 1bit
+    template <typename CIPHCtx>
+    class CFBContext : public BaseBlockCipherMode<CFBContext<CIPHCtx>, CIPHCtx> {
+    public:
+        void setSegment(size_t seg) { seg_ = seg; }
+        void setIV(ByteArray iv)
+        {
+            iv_ = iv;
+            temp_ = iv_;
+        }
+        void encryptUpdate(const uint8_t* ptr)
+        {
+            this->ctx_.setPlain(temp_);
+            this->ctx_.encrypt();
+            auto ciph = this->ctx_.getCipher();
+            auto bptr = reinterpret_cast<const byte*>(ptr);
+            ciph = baxor(ByteArray(ciph.data(), seg_), ByteArray(bptr, seg_));
+            this->buffer_.append(ciph);
+            temp_ = ByteArray(temp_.data() + seg_, this->kBlockSize - seg_) + ciph;
+        }
+        void decryptUpdate(const uint8_t* ptr)
+        {
+            this->ctx_.setPlain(temp_);
+            this->ctx_.encrypt();
+            auto ciph = this->ctx_.getCipher();
+            auto bptr = reinterpret_cast<const byte*>(ptr);
+            ciph = baxor(ByteArray(ciph.data(), seg_), ByteArray(bptr, seg_));
+            this->buffer_.append(ciph);
+            temp_ = ByteArray(temp_.data() + seg_, this->kBlockSize - seg_) + ByteArray(bptr, seg_);
+        }
+        ByteArray encrypt(const ByteArray& buf)
+        {
+            auto ptr = reinterpret_cast<const uint8_t*>(buf.data());
+            for (size_t offset = 0; offset < buf.length(); offset += seg_) {
+                encryptUpdate(ptr + offset);
+            }
+            return this->buffer_;
+        }
+        ByteArray decrypt(const ByteArray& buf)
+        {
+            auto ptr = reinterpret_cast<const uint8_t*>(buf.data());
+            for (size_t offset = 0; offset < buf.length(); offset += seg_) {
+                decryptUpdate(ptr + offset);
+            }
+            return this->buffer_;
+        }
+
+    private:
+        size_t seg_;
+        ByteArray iv_;
+        ByteArray temp_;
+    };
 }
 }

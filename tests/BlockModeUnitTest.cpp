@@ -51,3 +51,59 @@ TEST(BlockCipherModeTest, AESCBCDecryptTest1)
     auto res = ctx.decrypt(ciph);
     ASSERT_EQ(res, plain);
 }
+
+TEST(BlockCipherModeTest, AESCFB8EncryptTest1)
+{
+    auto key = "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4"_ba;
+    auto iv = "000102030405060708090a0b0c0d0e0f"_ba;
+    auto plain = "6bc1bee22e409f96e93d7e117393172aae2d"_ba;
+    auto cipher = "dc1f1a8520a64db55fcc8ac554844e889700"_ba;
+    Detail::CFBContext<Detail::AES256Context> ctx;
+    ctx.setKey(key);
+    ctx.setIV(iv);
+    ctx.setSegment(1);
+    auto res = ctx.encrypt(plain);
+    ASSERT_EQ(res, cipher);
+}
+
+TEST(BlockCipherModeTest, AESCFB8DecryptTest1)
+{
+    auto key = "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4"_ba;
+    auto iv = "000102030405060708090a0b0c0d0e0f"_ba;
+    auto plain = "6bc1bee22e409f96e93d7e117393172aae2d"_ba;
+    auto cipher = "dc1f1a8520a64db55fcc8ac554844e889700"_ba;
+    Detail::CFBContext<Detail::AES256Context> ctx;
+    ctx.setKey(key);
+    ctx.setIV(iv);
+    ctx.setSegment(1);
+    auto res = ctx.decrypt(cipher);
+    ASSERT_EQ(res, plain);
+}
+
+TEST(BlockCipherModeTest, AESCFB128EncryptTest1)
+{
+    auto key = "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4"_ba;
+    auto iv = "000102030405060708090a0b0c0d0e0f"_ba;
+    auto plain = "6bc1bee22e409f96e93d7e117393172aae2d8a571e03ac9c9eb76fac45af8e5130c81c46a35ce411e5fbc1191a0a52eff69f2445df4f9b17ad2b417be66c3710"_ba;
+    auto cipher = "dc7e84bfda79164b7ecd8486985d386039ffed143b28b1c832113c6331e5407bdf10132415e54b92a13ed0a8267ae2f975a385741ab9cef82031623d55b1e471"_ba;
+    Detail::CFBContext<Detail::AES256Context> ctx;
+    ctx.setKey(key);
+    ctx.setIV(iv);
+    ctx.setSegment(16);
+    auto res = ctx.encrypt(plain);
+    ASSERT_EQ(res, cipher);
+}
+
+TEST(BlockCipherModeTest, AESCFB128DecryptTest1)
+{
+    auto key = "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4"_ba;
+    auto iv = "000102030405060708090a0b0c0d0e0f"_ba;
+    auto plain = "6bc1bee22e409f96e93d7e117393172aae2d8a571e03ac9c9eb76fac45af8e5130c81c46a35ce411e5fbc1191a0a52eff69f2445df4f9b17ad2b417be66c3710"_ba;
+    auto cipher = "dc7e84bfda79164b7ecd8486985d386039ffed143b28b1c832113c6331e5407bdf10132415e54b92a13ed0a8267ae2f975a385741ab9cef82031623d55b1e471"_ba;
+    Detail::CFBContext<Detail::AES256Context> ctx;
+    ctx.setKey(key);
+    ctx.setIV(iv);
+    ctx.setSegment(16);
+    auto res = ctx.decrypt(cipher);
+    ASSERT_EQ(res, plain);
+}

@@ -148,5 +148,34 @@ namespace Detail {
         ByteArray iv_;
         ByteArray temp_;
     };
+    template <typename CIPHCtx>
+    class OFBContext : public BaseBlockCipherMode<OFBContext<CIPHCtx>, CIPHCtx> {
+    public:
+        void setIV(const ByteArray& iv)
+        {
+            iv_ = iv;
+            temp_ = iv_;
+        }
+
+        void encryptUpdate(const uint8_t* ptr)
+        {
+            this->ctx_.setPlain(temp_);
+            this->ctx_.encrypt();
+            temp_ = this->ctx_.getCipher();
+            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+        }
+
+        void decryptUpdate(const uint8_t* ptr)
+        {
+            this->ctx_.setPlain(temp_);
+            this->ctx_.encrypt();
+            temp_ = this->ctx_.getCipher();
+            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+        }
+
+    private:
+        ByteArray iv_;
+        ByteArray temp_;
+    };
 }
 }

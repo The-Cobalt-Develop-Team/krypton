@@ -108,9 +108,7 @@ namespace Detail {
         }
         void encryptUpdate(const uint8_t* ptr)
         {
-            this->ctx_.setPlain(temp_);
-            this->ctx_.encrypt();
-            auto ciph = this->ctx_.getCipher();
+            auto ciph = this->ctx_.setPlain(temp_).encrypt().getCipher();
             auto bptr = reinterpret_cast<const byte*>(ptr);
             ciph = baxor(ByteArray(ciph.data(), seg_), ByteArray(bptr, seg_));
             this->buffer_.append(ciph);
@@ -118,9 +116,7 @@ namespace Detail {
         }
         void decryptUpdate(const uint8_t* ptr)
         {
-            this->ctx_.setPlain(temp_);
-            this->ctx_.encrypt();
-            auto ciph = this->ctx_.getCipher();
+            auto ciph = this->ctx_.setPlain(temp_).encrypt().getCipher();
             auto bptr = reinterpret_cast<const byte*>(ptr);
             ciph = baxor(ByteArray(ciph.data(), seg_), ByteArray(bptr, seg_));
             this->buffer_.append(ciph);
@@ -159,23 +155,51 @@ namespace Detail {
 
         void encryptUpdate(const uint8_t* ptr)
         {
-            this->ctx_.setPlain(temp_);
-            this->ctx_.encrypt();
-            temp_ = this->ctx_.getCipher();
+            temp_ = this->ctx_.setPlain(temp_).encrypt().getCipher();
             this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
         }
 
         void decryptUpdate(const uint8_t* ptr)
         {
-            this->ctx_.setPlain(temp_);
-            this->ctx_.encrypt();
-            temp_ = this->ctx_.getCipher();
+            temp_ = this->ctx_.setPlain(temp_).encrypt().getCipher();
             this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
         }
 
     private:
         ByteArray iv_;
         ByteArray temp_;
+    };
+
+    template <typename CIPHCtx>
+    class CTRContext : public BaseBlockCipherMode<CTRContext<CIPHCtx>, CIPHCtx> {
+    public:
+        void setNonce(const ByteArray& nonce) { counter_ = nonce; }
+        void encryptUpdate(const uint8_t* ptr)
+        {
+            temp_ = this->ctx_.setPlain(counter_).encrypt().getCipher();
+            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+            this->incCounter();
+        }
+
+        void decryptUpdate(const uint8_t* ptr)
+        {
+            temp_ = this->ctx_.setPlain(counter_).encrypt().getCipher();
+            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+            this->incCounter();
+        }
+
+    private:
+        ByteArray counter_;
+        ByteArray temp_;
+        static constexpr const size_t kCtrSize = CIPHCtx::kBlockSize / 2;
+        void incCounter()
+        {
+            for (size_t i = 0; i < kCtrSize; ++i) {
+                ++this->counter_[counter_.length() - i - 1];
+                if (this->counter_[counter_.length() - i - 1] != 0x00)
+                    break;
+            }
+        }
     };
 }
 }

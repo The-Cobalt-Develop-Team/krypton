@@ -377,36 +377,45 @@ namespace Detail {
         std::array<uint8_t, 4 * Nk> key_ {};
 
     public:
+        using CIPHType = BaseAESContext<Nr, Nk>;
+        static constexpr const int kBlockSize = Nb * 4;
+        static constexpr const int kKeySize = Nk;
         enum Type {
             Encrypt,
             Decrypt
         };
-        void setKey(std::array<uint8_t, 4 * Nk> key)
+        CIPHType& setKey(std::array<uint8_t, 4 * Nk> key)
         {
             key_ = key;
+            return *this;
         }
-        void setPlain(std::array<uint8_t, 4 * Nb> plain)
+        CIPHType& setPlain(std::array<uint8_t, 4 * Nb> plain)
         {
             plain_ = plain;
+            return *this;
         }
-        void setCipher(std::array<uint8_t, 4 * Nb> cipher)
+        CIPHType& setCipher(std::array<uint8_t, 4 * Nb> cipher)
         {
             cipher_ = cipher;
+            return *this;
         }
-        void setPlain(const ByteArray& plain)
+        CIPHType& setPlain(const ByteArray& plain)
         {
             assert(plain.size() == 4 * Nb);
             memcpy(plain_.data(), plain.data(), 4 * Nb);
+            return *this;
         }
-        void setCipher(const ByteArray& cipher)
+        CIPHType& setCipher(const ByteArray& cipher)
         {
             assert(cipher.size() == 4 * Nb);
             memcpy(cipher_.data(), cipher.data(), 4 * Nb);
+            return *this;
         }
-        void setKey(const ByteArray& key)
+        CIPHType& setKey(const ByteArray& key)
         {
             assert(key.size() == 4 * Nk);
             memcpy(key_.data(), key.data(), 4 * Nk);
+            return *this;
         }
 
         std::array<uint8_t, 4 * Nb> getPlainArray() { return plain_; }
@@ -419,7 +428,7 @@ namespace Detail {
         {
             return { reinterpret_cast<byte*>(cipher_.data()), 4 * Nb };
         }
-        void init(std::array<uint8_t, 4 * Nb> in, std::array<uint8_t, 4 * Nk> in_key, Type type)
+        CIPHType& init(std::array<uint8_t, 4 * Nb> in, std::array<uint8_t, 4 * Nk> in_key, Type type)
         {
             if (type == Encrypt) {
                 setPlain(in);
@@ -427,9 +436,10 @@ namespace Detail {
                 setCipher(in);
             }
             setKey(in_key);
+            return *this;
         }
 
-        void encrypt()
+        CIPHType& encrypt()
         {
             for (int i = 0; i < 4 * Nb; ++i) {
                 state_[i] = plain_[i];
@@ -448,9 +458,10 @@ namespace Detail {
             for (int i = 0; i < 4 * Nb; ++i) {
                 cipher_[i] = state_[i];
             }
+            return *this;
         }
 
-        void decrypt()
+        CIPHType& decrypt()
         {
             for (int i = 0; i < 4 * Nb; ++i) {
                 state_[i] = cipher_[i];
@@ -469,6 +480,7 @@ namespace Detail {
             for (int i = 0; i < 4 * Nb; ++i) {
                 plain_[i] = state_[i];
             }
+            return *this;
         }
     };
 

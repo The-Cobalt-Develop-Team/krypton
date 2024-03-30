@@ -19,11 +19,45 @@
 #include "Utilities.hpp"
 #include <exception>
 #include <random>
+#include <utility>
 
 namespace Krypton {
 
 template <typename Prev>
-struct OAEPEncode { };
+struct OAEPEncode {
+    template <typename... Args>
+    ByteArray operator()(size_t k, Args&&... args)
+    {
+        return Detail::OAEPEncodeImpl(Prev {}(std::forward<Args>(args)...), k);
+    }
+};
+
+template <typename Prev>
+struct PKCS1Encode {
+    template <typename... Args>
+    ByteArray operator()(size_t k, Args&&... args)
+    {
+        return Detail::PKCS1EncodeImpl(Prev {}(std::forward<Args>(args)...), k);
+    }
+};
+
+template <typename Prev>
+struct OAEPDecode {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
+    {
+        return Detail::OAEPDecodeImpl(Prev {}(std::forward<Args>(args)...));
+    }
+};
+
+template <typename Prev>
+struct PKCS1Decode {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
+    {
+        return Detail::PKCS1DecodeImpl(Prev {}(std::forward<Args>(args)...));
+    }
+};
 
 namespace Detail {
     struct MGF1Impl {

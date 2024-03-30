@@ -15,15 +15,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #pragma once
 
+#include "Algorithm.hpp"
 #include "GMPWrapper.hpp"
 #include "Hash.hpp"
 #include "Utilities.hpp"
 
 namespace Krypton {
-
-// TODO: finish rsa template
-template <typename TInput>
-class RSA { };
 
 namespace Detail {
     class RSAImpl {
@@ -56,5 +53,55 @@ namespace Detail {
         RSAKeyPair key_;
     };
 }
+
+// using RSAKeyPair = Detail::RSAImpl::RSAKeyPair;
+using RSAKeyPair = std::pair<const ByteArray&, const ByteArray&>;
+
+template <typename Prev>
+struct RawRSAEncrypt {
+    template <typename... Args>
+    ByteArray operator()(std::pair<const ByteArray&, const ByteArray&> key, Args&&... args)
+    {
+        Detail::RSAImpl ctx;
+        ctx.setPrivateKey(key.first, key.second, key.keylen);
+        return ctx.encrypt(Prev {}(std::forward<Args>(args)...));
+    }
+};
+
+template <typename Prev>
+struct RawRSADecrypt {
+    template <typename... Args>
+    ByteArray operator()(std::pair<const ByteArray&, const ByteArray&> key, Args&&... args)
+    {
+        Detail::RSAImpl ctx;
+        ctx.setPublicKey(key.first, key.second);
+        return ctx.decrypt(Prev {}(std::forward<Args>(args)...));
+    }
+};
+
+template <typename Prev>
+struct OAEPRSAEncrypt {
+    template <typename... Args>
+    ByteArray operator()(RSAKeyPair key, Args&&... args)
+    {
+        Detail::RSAImpl ctx;
+        ctx.setPrivateKey(key.first, key.second);
+        return ctx.decrypt(Detail::OAEPEncodeImpl(Prev {}(std::forward<Args>(args)...), ctx.getKeyLen() / 8));
+    }
+};
+template <typename Prev>
+struct PKCS1RSAEncrypt {
+    template <typename... Args>
+    ByteArray operator()(RSAKeyPair key, Args&&... args)
+    {
+        Detail::RSAImpl ctx;
+        ctx.setPrivateKey(key.first, key.second);
+        return ctx.decrypt(Detail::PKCS1EncodeImpl(Prev {}(std::forward<Args>(args)...), ctx.getKeyLen() / 8));
+    }
+};
+template <typename Prev>
+using OAEPRSADecrypt = OAEPDecode<RawRSADecrypt<Prev>>;
+template <typename Prev>
+using PKCS1RSADecrypt = OAEPDecode<RawRSADecrypt<Prev>>;
 
 }

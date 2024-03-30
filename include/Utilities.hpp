@@ -19,6 +19,8 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <tuple>
+#include <type_traits>
 #include <utility>
 
 namespace Krypton {
@@ -134,12 +136,109 @@ public:
     }
 };
 
+namespace Detail {
+    // from https://stackoverflow.com/questions/15904288/how-to-reverse-the-order-of-arguments-of-a-variadic-template-function
+    template <typename, typename>
+    struct append_to_type_seq { };
+
+    template <typename T, typename... Ts>
+    struct append_to_type_seq<T, std::tuple<Ts...>> {
+        using type = std::tuple<Ts..., T>;
+    };
+
+    template <typename... Ts>
+    struct revert_type_seq {
+        using type = std::tuple<>;
+    };
+
+    template <typename T, typename... Ts>
+    struct revert_type_seq<T, Ts...> {
+        using type = typename append_to_type_seq<
+            T,
+            typename revert_type_seq<Ts...>::type>::type;
+    };
+    template <int... Is>
+    struct index_list { };
+
+    template <int MIN, int N, int... Is>
+    struct range_builder;
+
+    template <int MIN, int... Is>
+    struct range_builder<MIN, MIN, Is...> {
+        typedef index_list<Is...> type;
+    };
+
+    template <int MIN, int N, int... Is>
+    struct range_builder : public range_builder<MIN, N - 1, N - 1, Is...> { };
+
+    template <int MIN, int MAX>
+    using index_range = typename range_builder<MIN, MAX>::type;
+
+    template <typename... Args, int... Is>
+    typename revert_type_seq<Args...>::type
+    revert_tuple(std::tuple<Args...>&& t, index_list<Is...>)
+    {
+        using reverted_tuple = typename revert_type_seq<Args...>::type;
+
+        // Forwarding machinery that handles both lvalues and rvalues...
+        auto rt = std::forward_as_tuple(
+            std::forward<
+                typename std::conditional<
+                    std::is_lvalue_reference<
+                        typename std::tuple_element<Is, reverted_tuple>::type>::value,
+                    typename std::tuple_element<Is, reverted_tuple>::type,
+                    typename std::remove_reference<
+                        typename std::tuple_element<Is, reverted_tuple>::type>::type>::type>(std::get<sizeof...(Args) - Is - 1>(t))...);
+
+        return rt;
+    }
+
+    template <typename... Args>
+    typename revert_type_seq<Args...>::type
+    revert_tuple(std::tuple<Args...>&& t)
+    {
+        return revert_tuple(std::move(t), index_range<0, sizeof...(Args)>());
+    }
+
+    template <typename... Args>
+    typename revert_type_seq<Args...>::type
+    make_revert(Args&&... args)
+    {
+        auto t = std::forward_as_tuple(std::forward<Args>(args)...);
+        return revert_tuple(std::move(t));
+    }
+
+    template <typename F, typename... Args>
+    using ReturnType = std::result_of_t<F(Args...)>;
+
+    template <typename F, typename... Args, int... Is>
+    ReturnType<F, Args...> revert_call(F&& f, index_list<Is...>, Args&&... args)
+    {
+        auto rt = make_revert(std::forward<Args>(args)...);
+        return f(std::get<Is>(rt)...);
+    }
+
+    template <typename F, typename... Args>
+    ReturnType<F, Args...> revert_call(F&& f, Args&&... args)
+    {
+        return revert_call(f, index_range<0, sizeof...(Args)>(),
+            std::forward<Args>(args)...);
+    }
+
+    template <typename F>
+    struct FunctorReverter {
+        template <typename... Args>
+        ReturnType<F, Args...> operator()(Args&&... args) { return revert_call(F {}, std::forward<Args>(args)...); }
+    };
+}
+
 struct FunctorFactory {
     template <typename T>
     struct Proxy {
         template <template <typename> typename N>
         using Next = Proxy<N<T>>;
-        using Result = T;
+        // using Result = T;
+        using Result = Detail::FunctorReverter<T>;
     };
     template <typename T>
     using Next = Proxy<T>;

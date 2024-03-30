@@ -60,3 +60,31 @@ TEST(FunctorTest, FunctorFactoryTest3)
     auto input = "WW9pbWl5YSE=";
     ASSERT_EQ(func {}(input), expres);
 }
+template <typename Prev>
+struct Add {
+    template <typename... Args>
+    int operator()(int a, Args&&... args)
+    {
+        return a + Prev {}(std::forward<Args>(args)...);
+    }
+};
+
+template <typename Prev>
+struct Multiple {
+    template <typename... Args>
+    int operator()(int a, Args&&... args)
+    {
+        return a * Prev {}(std::forward<Args>(args)...);
+    }
+};
+
+TEST(FunctorTest, FunctorFactoryTest4)
+{
+    using namespace Krypton;
+    struct IntWrapper {
+        int operator()(int a) { return a; }
+    };
+    using func = FunctorFactory::Next<IntWrapper>::Next<Add>::Next<Multiple>::Result;
+    auto res = func {}(1, 4, 5);
+    ASSERT_EQ(res, 25);
+}

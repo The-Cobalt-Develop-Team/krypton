@@ -13,12 +13,12 @@ namespace Detail {
 }
 
 template <typename F, typename... Args>
-using ReturnType = typename std::invoke_result<F(Args..)>::type;
+using ReturnType = typename std::invoke_result<F(Args...)>::type;
 
 template <int Index>
 struct GetKthArgument {
     template <typename... Args>
-    typename Detail::GetKthTemplateArgType<Index, Args...>::type operator()(Args&&... args)
+    auto operator()(Args&&... args)
     {
         auto t = std::forward_as_tuple(std::forward<Args>(args)...);
         return std::get<Index>(t);

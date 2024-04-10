@@ -126,8 +126,8 @@ TEST(RSATest, RSAPKCS1EncryptTest1)
     rsactx.setPrivateKey(n, d);
     ASSERT_EQ(rsactx.getKeyPair().keylen, 1024);
     auto plain = toBuffer("Yoimiya!");
-    auto oaepciph = rsactx.encrypt(Detail::PKCS1EncodeImpl(plain, rsactx.getKeyLen() / 8));
-    auto dersa = Detail::PKCS1DecodeImpl(rsactx.decrypt(oaepciph));
+    auto pkcs1ciph = rsactx.encrypt(Detail::PKCS1EncodeImpl(plain, rsactx.getKeyLen() / 8));
+    auto dersa = Detail::PKCS1DecodeImpl(rsactx.decrypt(pkcs1ciph));
     ASSERT_EQ(dersa, plain);
 }
 
@@ -146,6 +146,8 @@ TEST(RSATest, RSAPKCS1EncryptFunctorTest1)
     kl = GetRSAKeySize<GetKthArgument<0>> {}(privk);
     ASSERT_EQ(kl, 128);
     auto pkcs1ciph = enc {}(plain, pubk);
+    auto expciph = fromHex("B448F64C1F4CF2D337F77F15EC68184D6AB1E8A5B71A49E3FBF64B1F0669AD5258CF78633A01F1645EF413182F91BDBBD04FC8C318CA6285CE8D105E7D72D12A47AC9C46C8677D9488E71B83773F80E9F6468F00267AE4929A9E632502BB41A75FB73C1EFEDE3DECBF849B425E2594085E804458DE7CBA44894268A71DB989CA");
+    ASSERT_EQ(pkcs1ciph, expciph);
     auto dersa = dec {}(pkcs1ciph, privk);
     ASSERT_EQ(dersa, plain);
 }

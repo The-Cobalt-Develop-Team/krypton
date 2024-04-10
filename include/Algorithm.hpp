@@ -23,21 +23,21 @@
 
 namespace Krypton {
 
-template <typename Prev>
+template <typename Plain, typename Size>
 struct OAEPEncode {
     template <typename... Args>
-    ByteArray operator()(size_t k, Args&&... args)
+    ByteArray operator()(Args&&... args)
     {
-        return Detail::OAEPEncodeImpl(Prev {}(std::forward<Args>(args)...), k);
+        return Detail::OAEPEncodeImpl(Plain {}(std::forward<Args>(args)...), Size {}(std::forward<Args>(args)...));
     }
 };
 
-template <typename Prev>
+template <typename Plain, typename Size>
 struct PKCS1Encode {
     template <typename... Args>
-    ByteArray operator()(size_t k, Args&&... args)
+    ByteArray operator()(Args&&... args)
     {
-        return Detail::PKCS1EncodeImpl(Prev {}(std::forward<Args>(args)...), k);
+        return Detail::PKCS1EncodeImpl(Plain {}(std::forward<Args>(args)...), Size {}(std::forward<Args>(args)...));
     }
 };
 

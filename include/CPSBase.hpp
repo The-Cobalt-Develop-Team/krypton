@@ -12,9 +12,6 @@ namespace Detail {
     };
 }
 
-template <typename F, typename... Args>
-using ReturnType = typename std::invoke_result<F(Args...)>::type;
-
 template <int Index>
 struct GetKthArgument {
     template <typename... Args>

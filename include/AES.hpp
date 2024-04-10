@@ -24,9 +24,6 @@
 
 namespace Krypton {
 
-template <typename Prev>
-struct AESEncrypt { };
-
 namespace Detail {
     template <int Nr, int Nk>
     class BaseAESContext {

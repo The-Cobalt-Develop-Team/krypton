@@ -16,6 +16,7 @@
 #pragma once
 
 #include "Algorithm.hpp"
+#include "CPSBase.hpp"
 #include "GMPWrapper.hpp"
 #include "Hash.hpp"
 #include "Utilities.hpp"
@@ -55,53 +56,60 @@ namespace Detail {
 }
 
 // using RSAKeyPair = Detail::RSAImpl::RSAKeyPair;
-using RSAKeyPair = std::pair<const ByteArray&, const ByteArray&>;
+// using RSAKeyPair = std::pair<const ByteArray&, const ByteArray&>;
 
-template <typename Prev>
-struct RawRSAEncrypt {
+using RSAKeyPair = std::pair<ByteArray, ByteArray>;
+
+template <typename KeyPair>
+struct GetRSAKeySize {
     template <typename... Args>
-    ByteArray operator()(std::pair<const ByteArray&, const ByteArray&> key, Args&&... args)
+    size_t operator()(Args&&... args)
     {
-        Detail::RSAImpl ctx;
-        ctx.setPrivateKey(key.first, key.second, key.keylen);
-        return ctx.encrypt(Prev {}(std::forward<Args>(args)...));
+        RSAKeyPair p = KeyPair {}(std::forward<Args>(args)...);
+        return p.first.size();
     }
 };
 
-template <typename Prev>
-struct RawRSADecrypt {
+template <typename N, typename D>
+struct BindRSAKeyPair {
     template <typename... Args>
-    ByteArray operator()(std::pair<const ByteArray&, const ByteArray&> key, Args&&... args)
+    RSAKeyPair operator()(Args&&... args)
+    {
+        return { N {}(std::forward<Args>(args)...), D {}(std::forward<Args>(args)...) };
+    }
+};
+
+template <typename Plain, typename KeyPair>
+struct RawRSAEncrypt {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
     {
         Detail::RSAImpl ctx;
+        RSAKeyPair key = KeyPair {}(std::forward<Args>(args)...);
+        ctx.setPrivateKey(key.first, key.second);
+        return ctx.encrypt(Plain {}(std::forward<Args>(args)...));
+    }
+};
+
+template <typename Prev, typename KeyPair>
+struct RawRSADecrypt {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
+    {
+        Detail::RSAImpl ctx;
+        auto key = KeyPair {}(std::forward<Args>(args)...);
         ctx.setPublicKey(key.first, key.second);
         return ctx.decrypt(Prev {}(std::forward<Args>(args)...));
     }
 };
 
-template <typename Prev>
-struct OAEPRSAEncrypt {
-    template <typename... Args>
-    ByteArray operator()(RSAKeyPair key, Args&&... args)
-    {
-        Detail::RSAImpl ctx;
-        ctx.setPrivateKey(key.first, key.second);
-        return ctx.decrypt(Detail::OAEPEncodeImpl(Prev {}(std::forward<Args>(args)...), ctx.getKeyLen() / 8));
-    }
-};
-template <typename Prev>
-struct PKCS1RSAEncrypt {
-    template <typename... Args>
-    ByteArray operator()(RSAKeyPair key, Args&&... args)
-    {
-        Detail::RSAImpl ctx;
-        ctx.setPrivateKey(key.first, key.second);
-        return ctx.decrypt(Detail::PKCS1EncodeImpl(Prev {}(std::forward<Args>(args)...), ctx.getKeyLen() / 8));
-    }
-};
-template <typename Prev>
-using OAEPRSADecrypt = OAEPDecode<RawRSADecrypt<Prev>>;
-template <typename Prev>
-using PKCS1RSADecrypt = OAEPDecode<RawRSADecrypt<Prev>>;
+template <typename Plain, typename KeyPair>
+using OAEPRSAEncrypt = RawRSAEncrypt<OAEPEncode<Plain, GetRSAKeySize<KeyPair>>, KeyPair>;
+template <typename Plain, typename KeyPair>
+using OAEPRSADecrypt = OAEPDecode<RawRSADecrypt<Plain, KeyPair>>;
+template <typename Plain, typename KeyPair>
+using PKCS1RSAEncrypt = RawRSAEncrypt<PKCS1Encode<Plain, GetRSAKeySize<KeyPair>>, KeyPair>;
+template <typename Plain, typename KeyPair>
+using PKCS1RSADecrypt = PKCS1Decode<RawRSADecrypt<Plain, KeyPair>>;
 
 }

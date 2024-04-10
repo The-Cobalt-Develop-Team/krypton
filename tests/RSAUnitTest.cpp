@@ -131,22 +131,21 @@ TEST(RSATest, RSAPKCS1EncryptTest1)
     ASSERT_EQ(dersa, plain);
 }
 
-TEST(RSATest, RSAOAEPFunctorTest1)
+TEST(RSATest, RSAPKCS1EncryptFunctorTest1)
 {
-    struct ByteArrayWrapper {
-        ByteArray operator()(const ByteArray& ba) { return ba; }
-    };
-    // using Encrypter = FunctorFactory::Next<ByteArrayWrapper>::Next<OAEPRSAEncrypt>::Result;
-    // using Encrypter = Detail::FunctorReverter<OAEPRSAEncrypt<ByteArrayWrapper>>;
-    using Encrypter = OAEPRSAEncrypt<ByteArrayWrapper>;
-    using Decrypter = FunctorFactory::Next<ByteArrayWrapper>::Next<OAEPRSADecrypt>::Result;
     auto n = fromHex("CC2903D7A9E4EBD5726749B65DED04872AFE551F5325020A5C834167B78870DABD76293B2311869A97696EE74BD236D64770D697E56AA1209A6869E71F35745259E092EB580DA2F6BEA0E06CFD7F4489C17C2207168719B2AAA7EC992462AF4A2328B302C4E912381ADDE4539B6D287FA44C3841F38ADACF874CEBC244E4AC23");
     auto e = fromHex("10001");
     auto d = fromHex("10A36311C761C5AA7E8956638B620E95697692BF5BCA4F5142DADB90B54F644B1F57AAE28BE818BD2E8BC4230B75D54C3F443DE8E124807F24B64FB32B42F2F8C1E108BBAEBB4F17F0829BF61BF18DA127B774BE99D0E40C09EE33F90DDC274F43938F9BAE49D5F405E8D964E17A748CDED55A8A6B6BB77599476ECC1B806C01");
-    RSAKeyPair privkey { n, d };
-    RSAKeyPair pubkey { n, e };
     auto plain = toBuffer("Yoimiya!");
-    auto ciph = Encrypter {}(privkey, plain);
-    auto deciph = Decrypter {}(plain, pubkey);
-    ASSERT_EQ(deciph, plain);
+    using enc = PKCS1RSAEncrypt<GetKthArgument<0>, GetKthArgument<1>>;
+    using dec = PKCS1RSADecrypt<GetKthArgument<0>, GetKthArgument<1>>;
+    RSAKeyPair pubk = { n, e };
+    RSAKeyPair privk = { n, d };
+    auto kl = GetRSAKeySize<GetKthArgument<0>> {}(pubk);
+    ASSERT_EQ(kl, 128);
+    kl = GetRSAKeySize<GetKthArgument<0>> {}(privk);
+    ASSERT_EQ(kl, 128);
+    auto pkcs1ciph = enc {}(plain, pubk);
+    auto dersa = dec {}(pkcs1ciph, privk);
+    ASSERT_EQ(dersa, plain);
 }

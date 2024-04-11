@@ -86,7 +86,7 @@ struct RawRSAEncrypt {
     {
         Detail::RSAImpl ctx;
         RSAKeyPair key = KeyPair {}(std::forward<Args>(args)...);
-        ctx.setPrivateKey(key.first, key.second);
+        ctx.setPublicKey(key.first, key.second);
         return ctx.encrypt(Plain {}(std::forward<Args>(args)...));
     }
 };
@@ -98,7 +98,7 @@ struct RawRSADecrypt {
     {
         Detail::RSAImpl ctx;
         auto key = KeyPair {}(std::forward<Args>(args)...);
-        ctx.setPublicKey(key.first, key.second);
+        ctx.setPrivateKey(key.first, key.second);
         return ctx.decrypt(Prev {}(std::forward<Args>(args)...));
     }
 };

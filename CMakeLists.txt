@@ -20,6 +20,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(include/)
 include_directories(thirdparty/)
+include_directories(thirdparty/range-v3/include)
 
 find_package(GTest REQUIRED)
 

@@ -3,7 +3,7 @@
 namespace Krypton::Detail {
 ByteArray PKCS1EncodeImpl(const ByteArray& plain, size_t k)
 {
-    auto len = plain.length();
+    auto len = plain.size();
     auto offset = k - len;
     ByteArray res(k, static_cast<byte>(0));
     auto ptr = res.data();
@@ -23,11 +23,12 @@ ByteArray PKCS1DecodeImpl(const ByteArray& cipher)
     if (cipher[0] != 0x00 || cipher[1] != 0x02)
         throw PKCS1Exception();
     size_t i = 2;
-    while (i < cipher.length() && cipher[i] != 0x00)
+    while (i < cipher.size() && cipher[i] != 0x00)
         ++i;
-    if (i == cipher.length())
+    if (i == cipher.size())
         throw PKCS1Exception();
     ++i;
-    return { cipher.data() + i, cipher.length() - i };
+    // return { cipher.data() + i, cipher.size() - i };
+    return { cipher.begin() + i, cipher.end() };
 }
 }

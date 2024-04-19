@@ -53,13 +53,13 @@ void RSAImpl::setPrivateKey(const BigInt& p, const BigInt& q, const BigInt& dp, 
 }
 void RSAImpl::setPrivateKey(const ByteArray& n, const ByteArray& d)
 {
-    key_.keylen = n.length() * 8;
+    key_.keylen = n.size() * 8;
     key_.d = BigInt(d);
     key_.n = BigInt(n);
 }
 void RSAImpl::setPublicKey(const ByteArray& n, const ByteArray& e)
 {
-    key_.keylen = n.length() * 8;
+    key_.keylen = n.size() * 8;
     key_.e = BigInt(e);
     key_.n = BigInt(n);
 }

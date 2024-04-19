@@ -144,7 +144,7 @@ TEST(BlockCipherModeTest, AESCTREncryptTest1)
     ctx.setKey(key);
     ctx.setNonce(nonce);
     auto res = ctx.encrypt(plain);
-    ASSERT_EQ(res.length(),ciph.length());
+    ASSERT_EQ(res.size(),ciph.size());
     ASSERT_EQ(res, ciph);
 }
 

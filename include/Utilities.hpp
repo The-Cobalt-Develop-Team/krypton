@@ -22,28 +22,30 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace Krypton {
 
-using byte = char;
-using ByteArray = std::basic_string<byte>;
-using ByteArrayView = std::basic_string_view<byte>;
+using byte = uint8_t;
+// using ByteArray = std::basic_string<byte>;
+// using ByteArrayView = std::basic_string_view<byte>;
 // using ByteArrayStream = std::basic_stringstream<byte>;
+using ByteArray = std::vector<byte>;
 
 std::string toBase64(const ByteArray&);
 ByteArray fromBase64(const std::string&);
 std::string toHex(const ByteArray&);
 ByteArray fromHex(const std::string&);
-inline ByteArray toBuffer(const std::string& str) { return static_cast<ByteArray>(str); }
+inline ByteArray toBuffer(const std::string& str) { return { str.cbegin(), str.cend() }; }
 
 inline ByteArray operator""_ba(const char* ptr, size_t len) { return fromHex(std::string(ptr, len)); }
 
-// Note: lhs.length() must equals to rhs.length()
+// Note: lhs.size() must equals to rhs.size()
 inline ByteArray baxor(const ByteArray& lhs, const ByteArray& rhs)
 {
     ByteArray res;
-    res.resize(lhs.length());
-    for (size_t i = 0; i < lhs.length(); ++i)
+    res.resize(lhs.size());
+    for (size_t i = 0; i < lhs.size(); ++i)
         res[i] = lhs[i] ^ rhs[i];
     return res;
 }
@@ -75,7 +77,8 @@ public:
     }
     ByteArrayStream& operator<<(const ByteArray& ba)
     {
-        buf.append(ba);
+        // buf.append(ba);
+        buf.insert(buf.end(), ba.begin(), ba.end());
         return *this;
     }
     ByteArrayStream& operator>>(byte& c)
@@ -85,7 +88,7 @@ public:
     }
     ByteArrayStream& operator>>(ByteArray& other)
     {
-        auto len = other.length();
+        auto len = other.size();
         for (size_t i = 0; i < len && cur < buf.size(); ++i, ++cur)
             other[i] = buf[cur];
         return *this;
@@ -101,7 +104,7 @@ public:
     byte getc() { return buf[cur++]; }
     size_t get(const void*& buf, size_t len)
     {
-        auto remain = this->buf.length() - this->cur;
+        auto remain = this->buf.size() - this->cur;
         if (remain < len)
             len = remain;
         buf = this->buf.data() + this->cur;
@@ -110,7 +113,7 @@ public:
     }
     bool eof() const
     {
-        return cur >= this->buf.length();
+        return cur >= this->buf.size();
     }
     size_t offset() const { return cur; }
     ByteArray str() { return this->buf; }

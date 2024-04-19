@@ -24,7 +24,7 @@ std::string toBase64(const ByteArray& buf)
 {
     static constexpr const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     auto bytes_to_encode = buf.data();
-    auto in_len = buf.length();
+    auto in_len = buf.size();
     std::string ret;
     int i = 0;
     int j = 0;
@@ -79,20 +79,20 @@ ByteArray fromBase64(const std::string& str)
     ByteArray buf;
     size_t idx;
     uint32_t x;
-    for (idx = 0; idx + 3 < str.length() && str[idx + 3] != '='; idx += 4) {
+    for (idx = 0; idx + 3 < str.size() && str[idx + 3] != '='; idx += 4) {
         x = (table[str[idx]] << 18) | (table[str[idx + 1]] << 12) | (table[str[idx + 2]] << 6) | table[str[idx + 3]];
         buf.push_back(static_cast<byte>((x >> 16) & 0xff));
         buf.push_back(static_cast<byte>((x >> 8) & 0xff));
         buf.push_back(static_cast<byte>(x & 0xff));
     }
     x = 0;
-    while (idx < str.length() && str[idx] != '=') {
+    while (idx < str.size() && str[idx] != '=') {
         x = (x << 6) | table[str[idx]];
         ++idx;
     }
-    if (idx == str.length() - 2) {
+    if (idx == str.size() - 2) {
         buf.push_back(static_cast<byte>((x >> 4) & 0xff));
-    } else if (idx == str.length() - 1) {
+    } else if (idx == str.size() - 1) {
         buf.push_back(static_cast<byte>((x >> 10) & 0xff));
         buf.push_back(static_cast<byte>((x >> 2) & 0xff));
     } else {
@@ -126,11 +126,11 @@ ByteArray fromHex(const std::string& str)
     };
     ByteArray buf;
     size_t i = 0;
-    if (str.length() % 2 == 1) {
+    if (str.size() % 2 == 1) {
         buf.push_back(table[str[i]]);
         ++i;
     }
-    for (; i + 1 < str.length(); i += 2) {
+    for (; i + 1 < str.size(); i += 2) {
         buf.push_back((table[str[i]] << 4) | table[str[i + 1]]);
     }
     return buf;

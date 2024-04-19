@@ -419,11 +419,13 @@ namespace Detail {
         std::array<uint8_t, 4 * Nb> getCipherArray() { return cipher_; }
         ByteArray getPlain()
         {
-            return { reinterpret_cast<byte*>(plain_.data()), 4 * Nb };
+            // return { reinterpret_cast<byte*>(plain_.data()), 4 * Nb };
+            return { plain_.cbegin(), plain_.cend() };
         }
         ByteArray getCipher()
         {
-            return { reinterpret_cast<byte*>(cipher_.data()), 4 * Nb };
+            // return { reinterpret_cast<byte*>(cipher_.data()), 4 * Nb };
+            return { cipher_.cbegin(), cipher_.cend() };
         }
         CIPHType& init(std::array<uint8_t, 4 * Nb> in, std::array<uint8_t, 4 * Nk> in_key, Type type)
         {

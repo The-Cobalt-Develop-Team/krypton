@@ -3,10 +3,12 @@
 #include "AES.hpp"
 #include <array>
 #include <exception>
+#include <range/v3/view.hpp>
+#include <range/v3/action.hpp>
 
 namespace Krypton {
 namespace Detail {
-    struct BlockLengthError : std::exception {
+    struct BlocksizeError : std::exception {
         [[nodiscard]] const char* what() const noexcept override
         {
             return "BlockLenthError Occurred";
@@ -20,20 +22,20 @@ namespace Detail {
         ByteArray getBuffer() { return buffer_; }
         ByteArray encrypt(const ByteArray& buf)
         {
-            if (buf.length() % kBlockSize != 0)
-                throw BlockLengthError();
+            if (buf.size() % kBlockSize != 0)
+                throw BlocksizeError();
             auto ptr = reinterpret_cast<const uint8_t*>(buf.data());
-            for (size_t offset = 0; offset < buf.length(); offset += kBlockSize) {
+            for (size_t offset = 0; offset < buf.size(); offset += kBlockSize) {
                 static_cast<Derived*>(this)->encryptUpdate(ptr + offset);
             }
             return buffer_;
         }
         ByteArray decrypt(const ByteArray& buf)
         {
-            if (buf.length() % kBlockSize != 0)
-                throw BlockLengthError();
+            if (buf.size() % kBlockSize != 0)
+                throw BlocksizeError();
             auto ptr = reinterpret_cast<const uint8_t*>(buf.data());
-            for (size_t offset = 0; offset < buf.length(); offset += kBlockSize) {
+            for (size_t offset = 0; offset < buf.size(); offset += kBlockSize) {
                 static_cast<Derived*>(this)->decryptUpdate(ptr + offset);
             }
             return buffer_;
@@ -50,13 +52,15 @@ namespace Detail {
         // Note: memory between ptr and ptr+kBlockSize must be allocated
         void encryptUpdate(const uint8_t* ptr)
         {
-            this->ctx_.setPlain(ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize));
+            this->ctx_.setPlain(ByteArray(ptr, ptr + this->kBlockSize));
             this->ctx_.encrypt();
-            this->buffer_.append(this->ctx_.getCipher());
+            // this->buffer_.append(this->ctx_.getCipher());
+            // this->buffer_ = std::move(this->buffer_) | ranges::actions::join(this->ctx_.getCipher());
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(this->ctx_.getCipher()) | ranges::to<ByteArray>;
         }
         void decryptUpdate(const uint8_t* ptr)
         {
-            this->ctx_.setCipher(ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize));
+            this->ctx_.setCipher(ByteArray(ptr, ptr + this->kBlockSize));
             this->ctx_.decrypt();
             this->buffer_.append(this->ctx_.getPlain());
         }
@@ -72,9 +76,9 @@ namespace Detail {
 
         void encryptUpdate(const uint8_t* ptr)
         {
-            if (temp_.length() != this->kBlockSize)
-                throw BlockLengthError();
-            auto pl = baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize));
+            if (temp_.size() != this->kBlockSize)
+                throw BlocksizeError();
+            auto pl = baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize));
             this->ctx_.setPlain(pl);
             this->ctx_.encrypt();
             temp_ = this->ctx_.getCipher();
@@ -83,7 +87,7 @@ namespace Detail {
 
         void decryptUpdate(const uint8_t* ptr)
         {
-            auto ciph = ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize);
+            auto ciph = ByteArray(ptr, ptr + this->kBlockSize);
             this->ctx_.setCipher(ciph);
             this->ctx_.decrypt();
             auto pl = baxor(temp_, this->ctx_.getPlain());
@@ -110,9 +114,9 @@ namespace Detail {
         {
             auto ciph = this->ctx_.setPlain(temp_).encrypt().getCipher();
             auto bptr = reinterpret_cast<const byte*>(ptr);
-            ciph = baxor(ByteArray(ciph.data(), seg_), ByteArray(bptr, seg_));
+            ciph = baxor(ByteArray(ciph.data(), ciph.data() + seg_), ByteArray(bptr, bptr + seg_));
             this->buffer_.append(ciph);
-            temp_ = ByteArray(temp_.data() + seg_, this->kBlockSize - seg_) + ciph;
+            temp_ = ByteArray(temp_.data() + seg_, temp_.data() + this->kBlockSize) + ciph;
         }
         void decryptUpdate(const uint8_t* ptr)
         {
@@ -125,7 +129,7 @@ namespace Detail {
         ByteArray encrypt(const ByteArray& buf)
         {
             auto ptr = reinterpret_cast<const uint8_t*>(buf.data());
-            for (size_t offset = 0; offset < buf.length(); offset += seg_) {
+            for (size_t offset = 0; offset < buf.size(); offset += seg_) {
                 encryptUpdate(ptr + offset);
             }
             return this->buffer_;
@@ -133,7 +137,7 @@ namespace Detail {
         ByteArray decrypt(const ByteArray& buf)
         {
             auto ptr = reinterpret_cast<const uint8_t*>(buf.data());
-            for (size_t offset = 0; offset < buf.length(); offset += seg_) {
+            for (size_t offset = 0; offset < buf.size(); offset += seg_) {
                 decryptUpdate(ptr + offset);
             }
             return this->buffer_;
@@ -156,13 +160,13 @@ namespace Detail {
         void encryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(temp_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
         }
 
         void decryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(temp_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
         }
 
     private:
@@ -177,14 +181,14 @@ namespace Detail {
         void encryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(counter_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
             this->incCounter();
         }
 
         void decryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(counter_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(reinterpret_cast<const byte*>(ptr), this->kBlockSize)));
+            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
             this->incCounter();
         }
 
@@ -195,8 +199,8 @@ namespace Detail {
         void incCounter()
         {
             for (size_t i = 0; i < kCtrSize; ++i) {
-                ++this->counter_[counter_.length() - i - 1];
-                if (this->counter_[counter_.length() - i - 1] != 0x00)
+                ++this->counter_[counter_.size() - i - 1];
+                if (this->counter_[counter_.size() - i - 1] != 0x00)
                     break;
             }
         }

@@ -151,7 +151,8 @@ ByteArray MD5HashContext::hash(const ByteArray& inp)
     this->init();
     this->update(reinterpret_cast<const uint8_t*>(inp.data()), inp.size());
     this->final();
-    return { reinterpret_cast<byte*>(this->digest), 16 };
+    // return { reinterpret_cast<byte*>(this->digest), 16 };
+    return { this->digest, this->digest + 16 };
 }
 
 uint32_t SHA1Context::f(size_t t, uint32_t b, uint32_t c, uint32_t d)
@@ -240,7 +241,8 @@ ByteArray SHA1Context::hash(const ByteArray& inp)
     for (size_t i = 0; i < 20; ++i) {
         this->digest[i] = (this->h[i / 4] >> ((3 - i % 4) * 8)) & 0xff;
     }
-    return { reinterpret_cast<byte*>(this->digest), 20 };
+    // return { reinterpret_cast<byte*>(this->digest), 20 };
+    return { this->digest, this->digest + 20 };
 }
 
 #define CH(x, y, z) (((x) & (y)) ^ ((~(x)) & (z)))
@@ -321,7 +323,8 @@ ByteArray SHA256Context::hash(const ByteArray& inp)
     for (size_t i = 0; i < digestLen; ++i) {
         this->digest[i] = (this->h[i / 4] >> ((3 - i % 4) * 8)) & 0xff;
     }
-    return { reinterpret_cast<byte*>(this->digest), digestLen };
+    // return { reinterpret_cast<byte*>(this->digest), digestLen };
+    return { this->digest, this->digest + digestLen };
 }
 
 }

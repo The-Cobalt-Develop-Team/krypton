@@ -66,15 +66,16 @@ namespace Detail {
         {
             ByteArray res(len, static_cast<byte>(0));
             ByteArray h;
-            size_t slen = seed.length();
+            size_t slen = seed.size();
             HashCtx ctx;
-            seed.append(4, static_cast<char>(0));
+            // seed.append(4, static_cast<char>(0));
+            seed.insert(seed.end(), 4, static_cast<byte>(0));
             res.resize(len);
             for (uint32_t i = 0, cur = 0; cur < len; ++i) {
                 for (int s = 0; s < 4; ++s)
                     seed[slen + s] = static_cast<char>(i >> (8 * (3 - s)));
                 h = ctx.hash(seed);
-                for (size_t s = 0; s < h.length(); ++s, ++cur) {
+                for (size_t s = 0; s < h.size(); ++s, ++cur) {
                     if (cur >= len)
                         break;
                     res[cur] = h[s];
@@ -90,9 +91,9 @@ namespace Detail {
         HashCtx ctx;
         auto lhash = ctx.hash(label);
         auto hlen = HashCtx::digestLen;
-        auto mlen = msg.length();
+        auto mlen = msg.size();
 
-        size_t pslen = k - msg.length() - 2 * hlen - 2;
+        size_t pslen = k - msg.size() - 2 * hlen - 2;
         ByteArray res(k, static_cast<byte>(0));
         auto ptr = res.data();
 
@@ -111,7 +112,7 @@ namespace Detail {
         for (size_t i = hlen + 1; i < k; ++i)
             res[i] ^= mask[i - hlen - 1];
 
-        ByteArray maskedDB(ptr + hlen + 1, k - hlen - 1);
+        ByteArray maskedDB(ptr + hlen + 1, ptr + k);
         mask = MGF::mgf(maskedDB, hlen);
         memcpy(ptr + 1, seed.data(), hlen);
         for (size_t i = 1; i < hlen + 1; ++i)
@@ -138,9 +139,9 @@ namespace Detail {
         auto lhash = ctx.hash(label);
         auto ptr = cipher.data();
         auto hlen = HashCtx::digestLen;
-        auto k = cipher.length();
-        ByteArray seed(ptr + 1, hlen);
-        ByteArray db(ptr + hlen + 1, k - hlen - 1);
+        auto k = cipher.size();
+        ByteArray seed(ptr + 1, ptr + 1 + hlen);
+        ByteArray db(ptr + hlen + 1, ptr + k);
         auto seedmsk = MGF::mgf(db, hlen);
         for (size_t i = 0; i < hlen; ++i)
             seed[i] ^= seedmsk[i];
@@ -148,7 +149,7 @@ namespace Detail {
         for (size_t i = 0; i < k - hlen - 1; ++i)
             db[i] ^= dbmsk[i];
 
-        ByteArray l(db.data(), hlen);
+        ByteArray l(db.data(), db.data() + hlen);
         if (l != lhash)
             throw OAEPException();
         size_t idx = hlen;
@@ -157,7 +158,7 @@ namespace Detail {
         if (db[idx] != 0x01)
             throw OAEPException();
         ++idx;
-        res = ByteArray(db.data() + idx, db.length() - idx);
+        res = ByteArray(db.begin() + idx, db.end());
         return res;
     }
 

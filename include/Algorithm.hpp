@@ -17,34 +17,33 @@
 
 #include "Hash.hpp"
 #include "Utilities.hpp"
+#include "range/v3/algorithm.hpp"
+#include "range/v3/algorithm/find_if.hpp"
+#include "range/v3/range/conversion.hpp"
+#include "range/v3/view.hpp"
+#include "range/v3/view/slice.hpp"
+#include "range/v3/view/subrange.hpp"
+#include "range/v3/view/transform.hpp"
 #include <exception>
+#include <iostream>
 #include <random>
 #include <utility>
 
 namespace Krypton {
 
 namespace Detail {
+    using namespace ranges;
     struct MGF1Impl {
         template <typename HashCtx = SHA1Context>
-        static ByteArray mgf(ByteArray seed, uint32_t len)
+        static ByteArray mgf(const ByteArray& seed, uint32_t len)
         {
-            ByteArray res(len, static_cast<byte>(0));
-            ByteArray h;
             size_t slen = seed.size();
             HashCtx ctx;
-            // seed.append(4, static_cast<char>(0));
-            seed.insert(seed.end(), 4, static_cast<byte>(0));
-            res.resize(len);
-            for (uint32_t i = 0, cur = 0; cur < len; ++i) {
-                for (int s = 0; s < 4; ++s)
-                    seed[slen + s] = static_cast<char>(i >> (8 * (3 - s)));
-                h = ctx.hash(seed);
-                for (size_t s = 0; s < h.size(); ++s, ++cur) {
-                    if (cur >= len)
-                        break;
-                    res[cur] = h[s];
-                }
-            }
+            int n = (len + HashCtx::digestLen - 1) / HashCtx::digestLen;
+            auto hs = views::iota(0, n) | views::transform([&](int x) {
+                return ctx.hash(views::concat(seed, views::iota(0, 4) | views::transform([&](int i) { return x >> (8 * (3 - i)); })) | ranges::to<ByteArray>());
+            });
+            auto res = views::join(hs) | views::take_exactly(len) | ranges::to<ByteArray>();
             return res;
         }
     };
@@ -58,31 +57,18 @@ namespace Detail {
         auto mlen = msg.size();
 
         size_t pslen = k - msg.size() - 2 * hlen - 2;
-        ByteArray res(k, static_cast<byte>(0));
-        auto ptr = res.data();
-
-        memcpy(ptr + hlen + 1, lhash.data(), hlen);
-        *(ptr + k - mlen - 1) = 0x01;
-        memcpy(ptr + k - mlen, msg.data(), mlen);
-
-        ByteArray seed(hlen, static_cast<byte>(0));
         std::random_device rd;
         std::mt19937_64 rng(rd());
         std::uniform_int_distribution<int> dist(0, 255);
-        for (auto& s : seed)
-            s = dist(rng);
+        auto seed = views::generate([&]() -> byte { return static_cast<byte>(dist(rng)); }) | views::take(hlen) | to<ByteArray>();
+        auto db = views::concat(lhash, views::repeat(0x00) | views::take(k - mlen - 2 * hlen - 2), views::single(0x01), msg);
+        auto msk1 = MGF::mgf(seed, k - hlen - 1);
+        auto mskdb = views::zip(db, msk1) | views::transform([](std::pair<byte, byte> p) -> byte { return p.first ^ p.second; });
+        auto msk2 = MGF::mgf(mskdb | to<ByteArray>(), hlen);
+        auto mskseed = views::zip(seed, msk2) | views::transform([](std::pair<byte, byte> p) -> byte { return p.first ^ p.second; });
+        auto resrng = views::concat(views::single(0x00), mskseed, mskdb);
 
-        auto mask = MGF::mgf(seed, k - hlen - 1);
-        for (size_t i = hlen + 1; i < k; ++i)
-            res[i] ^= mask[i - hlen - 1];
-
-        ByteArray maskedDB(ptr + hlen + 1, ptr + k);
-        mask = MGF::mgf(maskedDB, hlen);
-        memcpy(ptr + 1, seed.data(), hlen);
-        for (size_t i = 1; i < hlen + 1; ++i)
-            res[i] ^= mask[i - 1];
-
-        return res;
+        return resrng | to<ByteArray>();
     };
 
     struct OAEPException : std::exception {
@@ -101,29 +87,22 @@ namespace Detail {
             throw OAEPException();
         HashCtx ctx;
         auto lhash = ctx.hash(label);
-        auto ptr = cipher.data();
         auto hlen = HashCtx::digestLen;
         auto k = cipher.size();
-        ByteArray seed(ptr + 1, ptr + 1 + hlen);
-        ByteArray db(ptr + hlen + 1, ptr + k);
-        auto seedmsk = MGF::mgf(db, hlen);
-        for (size_t i = 0; i < hlen; ++i)
-            seed[i] ^= seedmsk[i];
-        auto dbmsk = MGF::mgf(seed, k - hlen - 1);
-        for (size_t i = 0; i < k - hlen - 1; ++i)
-            db[i] ^= dbmsk[i];
-
-        ByteArray l(db.data(), db.data() + hlen);
+        auto mskseed = cipher | views::slice(1ul, hlen + 1);
+        auto mskdb = cipher | views::slice(hlen + 1, k);
+        auto seedmsk = MGF::mgf(mskdb | to<ByteArray>(), hlen);
+        auto seed = views::zip(mskseed, seedmsk) | views::transform([](std::pair<byte, byte> p) -> byte { return p.first ^ p.second; });
+        auto dbmsk = MGF::mgf(seed | to<ByteArray>(), k - hlen - 1);
+        auto db = views::zip(mskdb, dbmsk) | views::transform([](std::pair<byte, byte> p) -> byte { return p.first ^ p.second; });
+        auto l = db | views::slice(0ul, hlen) | to<ByteArray>();
         if (l != lhash)
             throw OAEPException();
-        size_t idx = hlen;
-        while (db[idx] == 0x00)
-            ++idx;
-        if (db[idx] != 0x01)
+        auto pos = find_if(db.begin() + hlen, db.end(), [](byte x) { return x == 0x01; });
+        if (pos == db.end())
             throw OAEPException();
-        ++idx;
-        res = ByteArray(db.begin() + idx, db.end());
-        return res;
+        auto msg = ranges::subrange(pos + 1, db.end());
+        return msg | to<ByteArray>();
     }
 
     struct PKCS1Exception : std::exception {
@@ -172,6 +151,5 @@ struct PKCS1Decode {
         return Detail::PKCS1DecodeImpl(Prev {}(std::forward<Args>(args)...));
     }
 };
-
 
 }

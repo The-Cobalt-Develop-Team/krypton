@@ -15,6 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #pragma once
 
+#include "range/v3/range/conversion.hpp"
+#include "range/v3/view/transform.hpp"
+#include "range/v3/view/zip.hpp"
 #include <cstdint>
 #include <sstream>
 #include <string>
@@ -44,9 +47,7 @@ inline ByteArray operator""_ba(const char* ptr, size_t len) { return fromHex(std
 inline ByteArray baxor(const ByteArray& lhs, const ByteArray& rhs)
 {
     ByteArray res;
-    res.resize(lhs.size());
-    for (size_t i = 0; i < lhs.size(); ++i)
-        res[i] = lhs[i] ^ rhs[i];
+    res = ranges::views::zip(lhs, rhs) | ranges::views::transform([](std::pair<byte, byte> p) { return p.first ^ p.second; }) | ranges::to<ByteArray>();
     return res;
 }
 

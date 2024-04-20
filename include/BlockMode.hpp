@@ -1,10 +1,12 @@
 #pragma once
 
 #include "AES.hpp"
+#include "Utilities.hpp"
+#include "range/v3/view/single.hpp"
 #include <array>
 #include <exception>
-#include <range/v3/view.hpp>
 #include <range/v3/action.hpp>
+#include <range/v3/view.hpp>
 
 namespace Krypton {
 namespace Detail {
@@ -62,7 +64,8 @@ namespace Detail {
         {
             this->ctx_.setCipher(ByteArray(ptr, ptr + this->kBlockSize));
             this->ctx_.decrypt();
-            this->buffer_.append(this->ctx_.getPlain());
+            // this->buffer_.append(this->ctx_.getPlain());
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(this->ctx_.getPlain()) | ranges::to<ByteArray>;
         }
     };
     template <typename CIPHCtx>
@@ -82,7 +85,8 @@ namespace Detail {
             this->ctx_.setPlain(pl);
             this->ctx_.encrypt();
             temp_ = this->ctx_.getCipher();
-            this->buffer_.append(temp_);
+            // this->buffer_.append(temp_);
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(temp_) | ranges::to<ByteArray>;
         }
 
         void decryptUpdate(const uint8_t* ptr)
@@ -92,7 +96,8 @@ namespace Detail {
             this->ctx_.decrypt();
             auto pl = baxor(temp_, this->ctx_.getPlain());
             temp_ = ciph;
-            this->buffer_.append(pl);
+            // this->buffer_.append(pl);
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(pl) | ranges::to<ByteArray>;
         }
 
     private:
@@ -105,7 +110,7 @@ namespace Detail {
     class CFBContext : public BaseBlockCipherMode<CFBContext<CIPHCtx>, CIPHCtx> {
     public:
         void setSegment(size_t seg) { seg_ = seg; }
-        void setIV(ByteArray iv)
+        void setIV(const ByteArray& iv)
         {
             iv_ = iv;
             temp_ = iv_;
@@ -115,16 +120,20 @@ namespace Detail {
             auto ciph = this->ctx_.setPlain(temp_).encrypt().getCipher();
             auto bptr = reinterpret_cast<const byte*>(ptr);
             ciph = baxor(ByteArray(ciph.data(), ciph.data() + seg_), ByteArray(bptr, bptr + seg_));
-            this->buffer_.append(ciph);
-            temp_ = ByteArray(temp_.data() + seg_, temp_.data() + this->kBlockSize) + ciph;
+            // this->buffer_.append(ciph);
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(ciph) | ranges::to<ByteArray>;
+            // temp_ = ByteArray(temp_.data() + seg_, temp_.data() + this->kBlockSize) + ciph;
+            temp_ = ranges::views::single(ByteArray(temp_.data() + seg_, temp_.data() + this->kBlockSize)) | ranges::views::join(ciph) | ranges::to<ByteArray>;
         }
         void decryptUpdate(const uint8_t* ptr)
         {
             auto ciph = this->ctx_.setPlain(temp_).encrypt().getCipher();
             auto bptr = reinterpret_cast<const byte*>(ptr);
-            ciph = baxor(ByteArray(ciph.data(), seg_), ByteArray(bptr, seg_));
-            this->buffer_.append(ciph);
-            temp_ = ByteArray(temp_.data() + seg_, this->kBlockSize - seg_) + ByteArray(bptr, seg_);
+            ciph = baxor(ByteArray(ciph.data(), ciph.data() + seg_), ByteArray(bptr, bptr + seg_));
+            // this->buffer_.append(ciph);
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(ciph) | ranges::to<ByteArray>;
+            // temp_ = ByteArray(temp_.data() + seg_, this->kBlockSize - seg_) + ByteArray(bptr, seg_);
+            this->buffer_ = ranges::views::single(ByteArray(temp_.data() + seg_, temp_.data() + this->kBlockSize)) | ranges::views::join(ByteArray(bptr, bptr + seg_)) | ranges::to<ByteArray>;
         }
         ByteArray encrypt(const ByteArray& buf)
         {
@@ -160,13 +169,15 @@ namespace Detail {
         void encryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(temp_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize))) | ranges::to<ByteArray>;
+            // this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
         }
 
         void decryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(temp_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
+            // this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize))) | ranges::to<ByteArray>;
         }
 
     private:
@@ -181,14 +192,16 @@ namespace Detail {
         void encryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(counter_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
+            // this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize))) | ranges::to<ByteArray>;
             this->incCounter();
         }
 
         void decryptUpdate(const uint8_t* ptr)
         {
             temp_ = this->ctx_.setPlain(counter_).encrypt().getCipher();
-            this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
+            // this->buffer_.append(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize)));
+            this->buffer_ = ranges::views::single(this->buffer_) | ranges::views::join(baxor(temp_, ByteArray(ptr, ptr + this->kBlockSize))) | ranges::to<ByteArray>;
             this->incCounter();
         }
 

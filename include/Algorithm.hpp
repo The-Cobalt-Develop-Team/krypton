@@ -23,42 +23,6 @@
 
 namespace Krypton {
 
-template <typename Plain, typename Size>
-struct OAEPEncode {
-    template <typename... Args>
-    ByteArray operator()(Args&&... args)
-    {
-        return Detail::OAEPEncodeImpl(Plain {}(std::forward<Args>(args)...), Size {}(std::forward<Args>(args)...));
-    }
-};
-
-template <typename Plain, typename Size>
-struct PKCS1Encode {
-    template <typename... Args>
-    ByteArray operator()(Args&&... args)
-    {
-        return Detail::PKCS1EncodeImpl(Plain {}(std::forward<Args>(args)...), Size {}(std::forward<Args>(args)...));
-    }
-};
-
-template <typename Prev>
-struct OAEPDecode {
-    template <typename... Args>
-    ByteArray operator()(Args&&... args)
-    {
-        return Detail::OAEPDecodeImpl(Prev {}(std::forward<Args>(args)...));
-    }
-};
-
-template <typename Prev>
-struct PKCS1Decode {
-    template <typename... Args>
-    ByteArray operator()(Args&&... args)
-    {
-        return Detail::PKCS1DecodeImpl(Prev {}(std::forward<Args>(args)...));
-    }
-};
-
 namespace Detail {
     struct MGF1Impl {
         template <typename HashCtx = SHA1Context>
@@ -172,4 +136,42 @@ namespace Detail {
     ByteArray PKCS1EncodeImpl(const ByteArray& plain, size_t k);
     ByteArray PKCS1DecodeImpl(const ByteArray& cipher);
 };
+
+template <typename Plain, typename Size>
+struct OAEPEncode {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
+    {
+        return Detail::OAEPEncodeImpl(Plain {}(std::forward<Args>(args)...), Size {}(std::forward<Args>(args)...));
+    }
+};
+
+template <typename Plain, typename Size>
+struct PKCS1Encode {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
+    {
+        return Detail::PKCS1EncodeImpl(Plain {}(std::forward<Args>(args)...), Size {}(std::forward<Args>(args)...));
+    }
+};
+
+template <typename Prev>
+struct OAEPDecode {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
+    {
+        return Detail::OAEPDecodeImpl(Prev {}(std::forward<Args>(args)...));
+    }
+};
+
+template <typename Prev>
+struct PKCS1Decode {
+    template <typename... Args>
+    ByteArray operator()(Args&&... args)
+    {
+        return Detail::PKCS1DecodeImpl(Prev {}(std::forward<Args>(args)...));
+    }
+};
+
+
 }

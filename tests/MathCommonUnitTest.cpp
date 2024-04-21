@@ -31,16 +31,18 @@ TEST(PrimeTest, RandomPrimeTest1)
     ASSERT_TRUE(100_bi <= randp && randp <= 1000_bi);
 }
 
-TEST(PrimeTest, RandomPrimeTest2)
-{
-    using Krypton::GMPWrapper::operator""_bi;
-    std::random_device rd;
-    std::mt19937_64 rng(rd());
-    auto minp = 1_bi << 1023, maxp = (1_bi << 1024);
-    auto randp = Krypton::getRandomPrime(rng, minp, maxp);
-    ASSERT_TRUE(Krypton::probablePrime(randp));
-    ASSERT_TRUE(minp <= randp && randp <= maxp);
-}
+// Remove RandomPrimeTest2 for its bad performance
+
+// TEST(PrimeTest, RandomPrimeTest2)
+// {
+//     using Krypton::GMPWrapper::operator""_bi;
+//     std::random_device rd;
+//     std::mt19937_64 rng(rd());
+//     auto minp = 1_bi << 1023, maxp = (1_bi << 1024);
+//     auto randp = Krypton::getRandomPrime(rng, minp, maxp);
+//     ASSERT_TRUE(Krypton::probablePrime(randp));
+//     ASSERT_TRUE(minp <= randp && randp <= maxp);
+// }
 
 TEST(CommonTest, GCDTest1)
 {

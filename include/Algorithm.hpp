@@ -89,13 +89,13 @@ namespace Detail {
         auto lhash = ctx.hash(label);
         auto hlen = HashCtx::digestLen;
         auto k = cipher.size();
-        auto mskseed = cipher | views::slice(1ul, hlen + 1);
+        auto mskseed = cipher | views::slice(1_sz, hlen + 1);
         auto mskdb = cipher | views::slice(hlen + 1, k);
         auto seedmsk = MGF::mgf(mskdb | to<ByteArray>(), hlen);
         auto seed = views::zip(mskseed, seedmsk) | views::transform([](std::pair<byte, byte> p) -> byte { return p.first ^ p.second; });
         auto dbmsk = MGF::mgf(seed | to<ByteArray>(), k - hlen - 1);
         auto db = views::zip(mskdb, dbmsk) | views::transform([](std::pair<byte, byte> p) -> byte { return p.first ^ p.second; });
-        auto l = db | views::slice(0ul, hlen) | to<ByteArray>();
+        auto l = db | views::slice(0_sz, hlen) | to<ByteArray>();
         if (l != lhash)
             throw OAEPException();
         auto pos = find_if(db.begin() + hlen, db.end(), [](byte x) { return x == 0x01; });

@@ -43,6 +43,8 @@ inline ByteArray toBuffer(const std::string& str) { return { str.cbegin(), str.c
 
 inline ByteArray operator""_ba(const char* ptr, size_t len) { return fromHex(std::string(ptr, len)); }
 
+inline size_t operator""_sz(unsigned long long x) { return static_cast<size_t>(x); }
+
 // Note: lhs.size() must equals to rhs.size()
 inline ByteArray baxor(const ByteArray& lhs, const ByteArray& rhs)
 {

@@ -38,7 +38,7 @@ add_library(krypton src/GMPWrapper.cpp
                     src/Utilities.cpp
                     src/RSA.cpp
                     src/Hash.cpp
-                    # src/ASN1.cpp
+                    src/ASN1.cpp
                     src/Algorithm.cpp
                     )
 

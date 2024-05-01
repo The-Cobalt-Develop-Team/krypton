@@ -53,7 +53,7 @@ add_executable(unittests tests/MathCommonUnitTest.cpp
                          tests/HashUnitTest.cpp
                          tests/FunctorTest.cpp
                          tests/AlgorithmUnitTest.cpp
-                        #  tests/ASN1UnitTest.cpp
+                         tests/ASN1UnitTest.cpp
                          tests/BlockModeUnitTest.cpp
                          tests/CPSBaseUnitTest.cpp
                          )

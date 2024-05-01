@@ -2,7 +2,9 @@
 
 #include "Utilities.hpp"
 #include <cstddef>
+#include <ios>
 #include <memory>
+#include <ostream>
 #include <variant>
 #include <vector>
 
@@ -39,6 +41,22 @@ public:
         , len(l)
         , content(c)
     {
+    }
+    void dump(std::ostream& os)
+    {
+        os << "Tag: " << tag.classTag << ' ' << tag.constructed << ' ' << tag.number << std::endl;
+        os << "Len: " << len << std::endl;
+        if (content.index() == 0) {
+            os << toHex(std::get<ByteArray>(content)) << std::endl;
+        } else {
+            os << '[' << std::endl;
+            for (const auto& ptr : std::get<ContainerType>(content)) {
+                os << '{' << std::endl;
+                ptr->dump(os);
+                os << "}, " << std::endl;
+            }
+            os << "]" << std::endl;
+        }
     }
     ASN1Tag tag {};
     size_t len = 0;
@@ -114,7 +132,7 @@ ASN1NodePtr ASN1Decode(ByteArrayStream& bs)
     } else {
         bs.get(buf, len);
     }
-    if (container.empty())
+    if (!container.empty())
         return std::make_shared<ASN1Node>(tag, len, container);
     else
         return std::make_shared<ASN1Node>(tag, len, buf);

@@ -2,6 +2,7 @@
 
 #include "Utilities.hpp"
 #include <cstddef>
+#include <format>
 #include <ios>
 #include <memory>
 #include <ostream>
@@ -42,25 +43,15 @@ public:
         , content(c)
     {
     }
-    void dump(std::ostream& os)
-    {
-        os << "Tag: " << tag.classTag << ' ' << tag.constructed << ' ' << tag.number << std::endl;
-        os << "Len: " << len << std::endl;
-        if (content.index() == 0) {
-            os << toHex(std::get<ByteArray>(content)) << std::endl;
-        } else {
-            os << '[' << std::endl;
-            for (const auto& ptr : std::get<ContainerType>(content)) {
-                os << '{' << std::endl;
-                ptr->dump(os);
-                os << "}, " << std::endl;
-            }
-            os << "]" << std::endl;
-        }
-    }
     ASN1Tag tag {};
     size_t len = 0;
     std::variant<ByteArray, ContainerType> content;
+    ASN1Node& operator[](size_t idx) { return *(std::get<ContainerType>(content)[idx]); }
+    auto& operator()() { return std::get<ByteArray>(content); }
+    size_t sublen() { return std::get<ContainerType>(content).size(); }
+    auto& sub() { return std::get<ContainerType>(content); }
+    auto& bytes() { return std::get<ByteArray>(content); }
+    void dump(std::ostream& os);
 };
 using ASN1NodePtr = std::shared_ptr<ASN1Node>;
 
@@ -102,44 +93,6 @@ namespace Detail {
     bool isEOC(const ASN1Tag& tag) { return tag.classTag == 0x00 && tag.number == 0x00; }
 }
 
-ASN1NodePtr ASN1Decode(ByteArrayStream& bs)
-{
-    auto start = bs.offset();
-    auto tag = Detail::decodeTag(bs);
-    auto taglen = bs.offset() - start;
-    auto len = Detail::decodeLen(bs);
-    auto content_start = bs.offset();
-    ASN1Node::ContainerType container;
-    ByteArray buf;
-    auto getSub = [&]() {
-        if (len != Detail::kIndefiniteLen) {
-            // TODO: check if stream has len elements
-            while (bs.offset() - start < len) {
-                auto res = ASN1Decode(bs);
-                container.emplace_back(res);
-            }
-        } else {
-            while (true) {
-                auto res = ASN1Decode(bs);
-                if (Detail::isEOC(res->tag))
-                    break;
-                container.emplace_back(res);
-            }
-        }
-    };
-    if (tag.constructed) {
-        getSub();
-    } else {
-        bs.get(buf, len);
-    }
-    if (!container.empty())
-        return std::make_shared<ASN1Node>(tag, len, container);
-    else
-        return std::make_shared<ASN1Node>(tag, len, buf);
-    // else if (Detail::isUniversal(tag) && (tag.number == 0x03 || tag.number == 0x04)) {
-    // if (!(tag.number == 0x03 && bs.getc() != 0))
-    // getSub();
-    // }
-}
+ASN1NodePtr ASN1Decode(ByteArrayStream& bs);
 
 }

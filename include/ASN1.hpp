@@ -89,8 +89,8 @@ namespace Detail {
         */
         return res;
     }
-    bool isUniversal(const ASN1Tag& tag) { return tag.classTag == 0x00; }
-    bool isEOC(const ASN1Tag& tag) { return tag.classTag == 0x00 && tag.number == 0x00; }
+    inline bool isUniversal(const ASN1Tag& tag) { return tag.classTag == 0x00; }
+    inline bool isEOC(const ASN1Tag& tag) { return tag.classTag == 0x00 && tag.number == 0x00; }
 }
 
 ASN1NodePtr ASN1Decode(ByteArrayStream& bs);

@@ -32,28 +32,36 @@ add_library(krypton src/GMPWrapper.cpp
                     src/Algorithm.cpp
                     )
 
-enable_testing()
-include(GoogleTest)
+option(KRYPTON_ENABLE_TEST "Build test" ON)
 
-add_executable(unittests tests/MathCommonUnitTest.cpp
-                         tests/GMPWrapperUnitTest.cpp
-                         tests/UtilitiesUnitTest.cpp
-                         tests/AESUnitTest.cpp
-                         tests/RSAUnitTest.cpp
-                         tests/HashUnitTest.cpp
-                         tests/FunctorTest.cpp
-                         tests/AlgorithmUnitTest.cpp
-                         tests/ASN1UnitTest.cpp
-                         tests/BlockModeUnitTest.cpp
-                         tests/CPSBaseUnitTest.cpp
-                         )
+if(KRYPTON_ENABLE_TEST)
+    message("Enable test")
+    enable_testing()
+    include(GoogleTest)
+
+    add_executable(unittests tests/MathCommonUnitTest.cpp
+                            tests/GMPWrapperUnitTest.cpp
+                            tests/UtilitiesUnitTest.cpp
+                            tests/AESUnitTest.cpp
+                            tests/RSAUnitTest.cpp
+                            tests/HashUnitTest.cpp
+                            tests/FunctorTest.cpp
+                            tests/AlgorithmUnitTest.cpp
+                            tests/ASN1UnitTest.cpp
+                            tests/BlockModeUnitTest.cpp
+                            tests/CPSBaseUnitTest.cpp
+                            )
+endif()
 
 if(WIN32)
-    set_property(TARGET unittests PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    if(KRYPTON_ENABLE_TEST)
+        set_property(TARGET unittests PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif()
     set_property(TARGET krypton PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     set_property(TARGET gmp PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-target_link_libraries(unittests gmp krypton GTest::gtest_main)
-
-gtest_discover_tests(unittests)
+if(KRYPTON_ENABLE_TEST)
+    target_link_libraries(unittests gmp krypton GTest::gtest_main)
+    gtest_discover_tests(unittests)
+endif()

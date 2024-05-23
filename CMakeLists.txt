@@ -13,6 +13,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(include/)
+include_directories(include/krypton)
 include_directories(thirdparty/)
 include_directories(thirdparty/range-v3/include)
 

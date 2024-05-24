@@ -17,10 +17,6 @@ include_directories(include/krypton)
 include_directories(thirdparty/)
 include_directories(thirdparty/range-v3/include)
 
-find_package(GTest REQUIRED)
-
-include_directories(${GTEST_INCLUDE_DIRS})
-
 add_library(gmp thirdparty/minigmp/mini-gmp.c)
 
 add_library(krypton src/GMPWrapper.cpp
@@ -36,6 +32,8 @@ option(KRYPTON_ENABLE_TEST "Build test" ON)
 
 if(KRYPTON_ENABLE_TEST)
     message("Enable test")
+    find_package(GTest REQUIRED)
+    include_directories(${GTEST_INCLUDE_DIRS})
     enable_testing()
     include(GoogleTest)
 

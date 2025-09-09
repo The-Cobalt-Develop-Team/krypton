@@ -1,0 +1,22 @@
+# See all options: <https://clang.llvm.org/docs/ClangFormatStyleOptions.html>
+BasedOnStyle: LLVM
+
+# Overrides
+# Set column limit to 100. Google's default is 80
+ColumnLimit: 100
+
+# Align consecutive assignments and declarations
+AlignConsecutiveAssignments: true
+# AlignConsecutiveDeclarations: true
+
+# Sort includes alphabetically
+SortIncludes: true
+
+# Allow short case labels on a single line
+AllowShortCaseLabelsOnASingleLine: true
+
+# Keep braces attached to the function/class/enum name
+BreakBeforeBraces: Attach
+
+# Indent case labels within a switch statement
+IndentCaseLabels: true

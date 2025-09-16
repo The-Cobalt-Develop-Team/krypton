@@ -1,55 +1,21 @@
 //
-// Created by Renatus Madrigal on 09/09/2025
+// Created by Renatus Madrigal on 09/16/2025
 //
 
-#ifndef KRYPTON_INCLUDE_KRYPTON_COMMON_RANGE_HPP_
-#define KRYPTON_INCLUDE_KRYPTON_COMMON_RANGE_HPP_
+#ifndef KRYPTON_INCLUDE_KRYPTON_COMMON_RANGES_AS_BYTES_HPP_
+#define KRYPTON_INCLUDE_KRYPTON_COMMON_RANGES_AS_BYTES_HPP_
 
-#include "common.hpp"
-#include <cstddef>
+#include "krypton/common/common.hpp"
+#include "krypton/ranges/range_base.hpp"
 #include <iterator>
-#include <type_traits>
 
-#ifdef KRYPTON_USE_STD_RANGES
-#include <ranges>
-#else
-#include <range/v3/range.hpp>
-#include <range/v3/range/access.hpp>
-#include <range/v3/range/concepts.hpp>
-#include <range/v3/range/primitives.hpp>
-#include <range/v3/range/traits.hpp>
-#include <range/v3/range_fwd.hpp>
+#ifndef KRYPTON_USE_STD_RANGES
 #include <range/v3/view/all.hpp>
-#include <range/v3/view/interface.hpp>
-#include <range/v3/view/view.hpp>
 #endif
 
-namespace krypton {
-
-namespace ranges {
-
-#ifdef KRYPTON_USE_STD_RANGES
-using namespace std::ranges;
-#else
-using namespace ::ranges;
-
-// The `std::ranges::view` concept is equivalent to `ranges::view_` in range-v3.
-// We define it here for consistency.
-template <typename Rng>
-concept view = ranges::view_<Rng>;
-
-#endif
-
-namespace views {
-
-#ifdef KRYPTON_USE_STD_RANGES
-using namespace std::ranges::views;
-#else
-using namespace ::ranges::views;
-#endif
+namespace krypton::ranges {
 
 namespace ext {
-
 namespace detail {
 template <typename BaseIter> class contiguous_as_byte_iterator {
   // Currently the implementation of contiguous_as_byte_iterator is almost the same as the
@@ -293,9 +259,13 @@ public:
   auto size() { return ranges::size(base_) * sizeof(ranges::range_value_t<Rng>); }
 };
 
+} // namespace ext
+
+namespace views::ext {
+
 struct as_bytes_fn {
   template <ranges::viewable_range Rng> view auto operator()(Rng &&rng) const {
-    return as_bytes_view(views::all(std::forward<Rng>(rng)));
+    return ranges::ext::as_bytes_view(views::all(std::forward<Rng>(rng)));
   }
 
   friend constexpr auto operator|(ranges::viewable_range auto &&rng, as_bytes_fn) {
@@ -305,16 +275,10 @@ struct as_bytes_fn {
 
 inline constexpr as_bytes_fn as_bytes{};
 
-} // namespace ext
+} // namespace views::ext
 
-static_assert(ranges::view<ext::as_bytes_view<std::vector<int>>>);
+static_assert(ranges::view<ranges::ext::as_bytes_view<std::vector<int>>>);
 
-} // namespace views
+} // namespace krypton::ranges
 
-} // namespace ranges
-
-namespace views = ranges::views; // NOLINT
-
-} // namespace krypton
-
-#endif // KRYPTON_INCLUDE_KRYPTON_COMMON_RANGE_HPP_
+#endif // KRYPTON_INCLUDE_KRYPTON_COMMON_RANGES_AS_BYTES_HPP_

@@ -2,10 +2,9 @@
 // Created by Renatus Madrigal on 09/14/2025
 //
 
-#include "krypton/common/range.hpp"
+#include "krypton/ranges/as_bytes.hpp"
 #include <deque>
 #include <gtest/gtest.h>
-#include <memory>
 #include <range/v3/range/concepts.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/range_fwd.hpp>

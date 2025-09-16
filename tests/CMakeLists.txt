@@ -23,6 +23,7 @@ add_executable(
     test_main.cpp
     common/secure_vector_test.cpp
     common/range_test.cpp
+    ranges/base64_test.cpp
 )
 
 # Link the test executable against GTest and the project's main target.

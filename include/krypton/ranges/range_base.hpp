@@ -38,6 +38,30 @@ using namespace ::ranges::views;
 
 } // namespace views
 
+namespace ext {
+
+template <typename BaseAdaptor> struct enable_pipeline {
+  template <typename Rng>
+    requires ranges::viewable_range<Rng> && std::is_invocable_v<BaseAdaptor, Rng>
+  constexpr auto operator|(Rng &&rng) const {
+    return std::invoke(static_cast<const BaseAdaptor &>(*this), std::forward<Rng>(rng));
+  }
+};
+
+template <typename Lambda> struct lambda_adaptor : public enable_pipeline<lambda_adaptor<Lambda>> {
+  Lambda lambda_;
+
+  explicit lambda_adaptor(Lambda lambda) : lambda_(std::move(lambda)) {}
+
+  template <typename Rng>
+    requires ranges::viewable_range<Rng> && std::is_invocable_v<Lambda, Rng>
+  constexpr auto operator()(Rng &&rng) const {
+    return std::invoke(lambda_, std::forward<Rng>(rng));
+  }
+};
+
+} // namespace ext
+
 } // namespace ranges
 
 namespace views = ranges::views; // NOLINT

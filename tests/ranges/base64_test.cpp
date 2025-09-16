@@ -59,3 +59,44 @@ TEST(RangeTest, Base64EncodeToVectorByteTest) {
   std::string output_str(output.begin(), output.end());
   EXPECT_EQ(expected_output, output_str);
 }
+
+TEST(RangeTest, Base64DecodeTest) {
+  std::string input           = "WW9pbWl5YSE=";
+  std::string expected_output = "Yoimiya!";
+  std::string output          = ext_rng::base64_decode(input) | ::ranges::to<std::string>();
+  EXPECT_EQ(expected_output, output);
+}
+
+TEST(RangeTest, Base64DecodeEmptyTest) {
+  std::string input           = "";
+  std::string expected_output = "";
+  std::string output          = ext_rng::base64_decode(input) | ::ranges::to<std::string>();
+  EXPECT_EQ(expected_output, output);
+}
+
+TEST(RangeTest, Base64DecodeShortTest) {
+  std::string input           = "SGk=";
+  std::string expected_output = "Hi";
+  std::string output          = ext_rng::base64_decode(input) | ::ranges::to<std::string>();
+  EXPECT_EQ(expected_output, output);
+}
+
+TEST(RangeTest, Base64DecodeCustomPaddingTest) {
+  constexpr auto custom_alphabet =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/-"sv;
+  auto decoder                = ext_rng::make_base64_decoder(custom_alphabet);
+  std::string input           = "WW9pbWl5YSE-";
+  std::string expected_output = "Yoimiya!";
+  std::string output          = decoder(input) | ::ranges::to<std::string>();
+  EXPECT_EQ(expected_output, output);
+}
+
+TEST(RangeTest, Base64DecodeCustomAlphabetTest) {
+  constexpr auto custom_alphabet =
+      "ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210+/="sv;
+  auto decoder                = ext_rng::make_base64_decoder(custom_alphabet);
+  std::string input           = "DD0kyDo4BHV=";
+  std::string expected_output = "Yoimiya!";
+  std::string output          = decoder(input) | ::ranges::to<std::string>();
+  EXPECT_EQ(expected_output, output);
+}

@@ -7,12 +7,15 @@
 
 #include "krypton/common/common.hpp"
 #include "krypton/ranges/range_base.hpp"
+#include <range/v3/algorithm/count_if.hpp>
+#include <range/v3/algorithm/find.hpp>
 #include <range/v3/range/concepts.hpp>
 #include <range/v3/range/operations.hpp>
 #include <range/v3/range/traits.hpp>
 #include <range/v3/view/chunk.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/join.hpp>
+#include <range/v3/view/take_last.hpp>
 #include <range/v3/view/transform.hpp>
 #include <string_view>
 #include <utility>
@@ -28,7 +31,7 @@ constexpr auto make_base64_encoder(Rng &&table) {
            views::transform([table = std::forward<Rng>(table)](auto &&chunk) {
              std::array<byte, 3> bytes{0, 0, 0};
              for (auto &&[idx, byte] : views::enumerate(chunk)) {
-               bytes[idx] = byte;
+               bytes[idx] = to_byte(byte);
              }
 
              const byte b0 = (bytes[0] & 0b11111100) >> 2;
@@ -47,12 +50,47 @@ constexpr auto make_base64_encoder(Rng &&table) {
   };
 }
 
+template <typename Rng>
+  requires ranges::random_access_range<Rng>
+constexpr auto make_base64_decoder(Rng &&table) {
+  return [table](auto &&input_range) {
+    const auto range_length = ranges::distance(input_range);
+    const auto padding_count =
+        ranges::count_if(input_range | views::take_last(2),
+                         [padding = ranges::back(table)](auto c) { return c == padding; });
+    const auto total_bytes = ((range_length / 4) * 3) - padding_count;
+
+    return input_range | views::chunk(4) |
+           views::transform([table = std::forward<Rng>(table)](auto &&chunk) {
+             std::array<byte, 4> bytes{0, 0, 0, 0};
+             for (auto &&[idx, byte] : views::enumerate(chunk)) {
+               auto it = ranges::find(table, byte);
+               if (it != ranges::end(table)) {
+                 bytes[idx] = to_byte(ranges::distance(ranges::begin(table), it));
+               } else {
+                 throw std::runtime_error("Invalid base64 character");
+               }
+             }
+
+             const byte b0 = (bytes[0] << 2) | ((bytes[1] & 0b00110000) >> 4);
+             const byte b1 = ((bytes[1] & 0b00001111) << 4) | ((bytes[2] & 0b00111100) >> 2);
+             const byte b2 = ((bytes[2] & 0b00000011) << 6) | bytes[3];
+
+             std::array<byte, 3> decoded{b0, b1, b2};
+
+             return decoded;
+           }) |
+           views::join | views::take(total_bytes);
+  };
+}
+
 // We save the padding character '=' at the end to simplify indexing.
 constexpr static std::string_view base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                                  "abcdefghijklmnopqrstuvwxyz"
                                                  "0123456789+/=";
 
 inline constexpr auto base64_encode = make_base64_encoder(base64_table);
+inline constexpr auto base64_decode = make_base64_decoder(base64_table);
 
 } // namespace krypton::ranges::ext
 
